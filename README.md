@@ -1,6 +1,6 @@
 # Career Intelligence Platform
 
-An AI-powered pipeline that scrapes job postings, scores them against my resume with an LLM, generates a tailored one-page PDF resume + cover letter per job, and auto-fills the ATS application form — cutting my own job-search research time by roughly 70%. Now used by 10+ other job seekers.
+An AI-powered pipeline that scrapes job postings, scores them against my resume with an LLM, generates a tailored one-page PDF resume + cover letter per job, and auto-fills the ATS application form — cutting job-search research time by roughly 70%. Now used by 10+ other job seekers.
 
 ## Why
 
