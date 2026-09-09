@@ -1,0 +1,25 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+seen_urls.json
+.env
+.DS_Store
+
+# Personal data / generated output -- not needed to demonstrate the pipeline
+job_fetcher.db
+job_fetcher.db.bak-*
+raw_jobs/
+resumes/
+resumes_archive_*/
+autofill_screenshots/
+job_fetcher_logs/
+*.log
+batch_run_log.json
+selected_batch.json
+startup_outreach_list.json
+master_resume.json
+master_resume.pdf
+
+# Real personal contact info -- use autofill_profile.example.json instead
+autofill_profile.json

@@ -1,0 +1,15 @@
+{
+  "_note": "Used by ats_autofill.py to fill common application fields. Copy this file to autofill_profile.json and fill in your own details before running a batch. Sensitive/legal questions (work authorization, sponsorship, EEO/demographic info, salary expectations, clearance, etc.) are NEVER auto-filled -- they are always flagged for you to answer by hand, on purpose.",
+  "first_name": "",
+  "last_name": "",
+  "full_name": "",
+  "email": "",
+  "phone": "",
+  "linkedin": "",
+  "website": "",
+  "address": "",
+  "city": "",
+  "state": "",
+  "zip": "",
+  "country": ""
+}

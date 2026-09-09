@@ -1,0 +1,589 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "job-ingest",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf2fd63c-13cf-4621-8e6d-6d94214612d7",
+      "name": "Webhook",
+      "webhookId": "e29ec55e-a6db-4507-992b-ff286bee44f0"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an expert technical recruiter specializing in Business Analyst, Product Owner, Analytics Engineer, Data Engineer, Business Intelligence, Snowflake, AI Automation, and Data Platform roles.\n\nEvaluate a batch of job postings against the candidate's profile. This is a SCORING-ONLY pass -- do not write any resume content, only judge fit.\n\nCANDIDATE SKILLS & POSITIONING:\n\n{{ JSON.stringify({ core_positioning: $json.body.master_resume.core_positioning, skills_keyword_bank: $json.body.master_resume.skills_keyword_bank }) }}\n\nJOB POSTINGS:\n\n{{ JSON.stringify($json.body.jobs.map(j => ({...j, description: (j.description || \"\").slice(0, 4000)}))) }}\n\nTASK:\n\nEvaluate every job posting against the candidate profile. Return ONE object per job.\n\nCANDIDATE'S ACTUAL EXPERIENCE LEVEL:\n\nThe candidate has approximately 5.5 years of professional work experience (2.5 years at Allegis Group as a Business Analyst II, roughly 2 years at KPMG as an Analyst, plus a 2-year Master's degree counted toward professional-level experience), plus a short internship at Thrivent. The candidate is transitioning FROM business analyst/BA-adjacent roles INTO analytics engineering -- they are NOT a senior or staff-level analytics/data engineer with 6+ years of hands-on data engineering experience, and scoring must reflect that honestly.\n\nSTEP 1 -- Determine the role's required experience level.\n\nRead the job description for explicit years-of-experience language (\"5+ years\", \"8-10 years\", \"minimum 6 years of experience\"). If no explicit number is stated, infer from title and seniority language instead:\n- Staff / Principal / Director / Head of / VP -> treat as requiring 8+ years\n- Senior / Sr. / Lead -> treat as requiring 6-7 years\n- Mid-level / Analytics Engineer / Analyst II / no seniority modifier -> treat as requiring 2-5 years\n- Associate / Analyst I / Junior / Entry-level -> treat as requiring 0-2 years\n\nSTEP 2 -- Apply a MANDATORY experience-gap penalty to match_score, before finalizing the score. This is a hard deduction, not a suggestion -- apply it even when the candidate's skills otherwise match well, because a real hiring filter (ATS or recruiter) will screen out an experience-level mismatch regardless of skill overlap:\n- Required experience 0-5 years: no penalty (candidate is at ~5.5 years)\n- Required experience 6-7 years: subtract 15 points\n- Required experience 8-9 years: subtract 30 points\n- Required experience 10+ years: subtract 45 points\n\nSTEP 3 -- Score the skill/domain fit using the tightened anchors below, THEN apply the Step 2 penalty on top of that base score. The final match_score is the post-penalty number.\n\nScoring Guidance (tightened -- be strict, most postings should NOT land in the 80s/90s):\n\n90-100 = Exceptional fit: required experience is within reach (<=4 years) AND deep, direct overlap on core tools/domain (Snowflake, SQL, analytics engineering, BA/data platform work)\n75-89 = Strong fit: good skill overlap, experience requirement roughly matches or is only slightly above candidate's level\n60-74 = Good fit: real overlap but a noticeable gap in either skills or experience level\n45-59 = Reasonable fit: partial overlap, meaningful gap in skills or experience (this should be a common, not rare, bucket for a large batch)\n30-44 = Weak fit: minor overlap only\nBelow 30 = Poor fit, will be auto-dropped\n\nDo not let scores cluster in the 80s-90s by default. Across a large batch of varied postings, the DISTRIBUTION should be wide -- most jobs should fall in the 40-75 range, with 85+ reserved for genuinely excellent, low-experience-gap matches. If nearly every job in a batch scores 80+, you are scoring too generously and must re-calibrate lower.\n\nFavor jobs involving:\n\n- Business Analysis\n- Product Ownership\n- Analytics Engineering\n- Data Engineering\n- Snowflake\n- SQL\n- Tableau\n- AI Automation\n- Data Platforms\n- Process Improvement\n- Business Process Optimization\n- Stakeholder Management\n\nReduce scores for:\n\n- Heavy software engineering roles\n- Deep infrastructure roles\n- Non-data technical positions\n- Manufacturing automation roles\n- PLC engineering roles\n- Embedded systems roles\n\nRETURN ONLY VALID JSON.\n\nDO NOT RETURN:\n\n- Markdown\n- Explanations\n- Introductory text\n- Code fences\n\nRequired Output Format:\n\n[\n  {\n    \"job_id\": \"string\",\n    \"title\": \"string\",\n    \"company\": \"string\",\n    \"location\": \"string\",\n    \"url\": \"string\",\n    \"match_score\": 85,\n    \"tech_stack\": [\n      \"Python\",\n      \"SQL\"\n    ],\n    \"missing_skills\": [\n      \"Airflow\"\n    ],\n    \"pitch\": \"Short explanation of fit.\"\n  }\n]\n\nRules:\n\n- Return exactly one object per input job.\n- Preserve job_id, title, company, location, and url exactly as received.\n- match_score must be numeric.\n- tech_stack must always be an array.\n- missing_skills must always be an array.\n- pitch should be brief and actionable.\n- Return only valid JSON."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        16
+      ],
+      "id": "4007ddbb-c6a0-482b-aaa4-5ae3a6edc77c",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Bijzgxtcanf2Xo5q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1YjAl4za_e8k3d21014mqx0SGjEmft81ZYg7dchUNSbA/edit?pli=1&gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1YjAl4za_e8k3d21014mqx0SGjEmft81ZYg7dchUNSbA/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "JOB ID": "={{ $json.job_id }}",
+            "TITLE": "={{ $json.title }}\n",
+            "COMPANY ": "={{ $json.company }}",
+            "LOCATION ": "={{ $json.location }}",
+            "TECH STACK": "={{ $json.tech_stack }}",
+            "PITCH": "={{ $json.pitch }}",
+            "URL": "={{ $json.url }}",
+            "MATCH SCORE": "={{ $json.match_score }}",
+            "Cover Letter": "={{ $json.cover_letter || \"\" }}",
+            "OUTREACH": "={{ $json.match_score >= 75 ? \"YES\" : \"\" }}",
+            "TAILORED RESUME BULLETS": "={{ $json.tailored_resume_bullets }}",
+            "TAILORED SUMMARY": "={{ $json.tailored_summary }}",
+            "TAILORED SKILLS": "={{ $json.tailored_skills }}",
+            "DATE POSTED": "={{ $json.date_posted }}",
+            "SCRAPED AT": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "JOB ID",
+              "displayName": "JOB ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TITLE",
+              "displayName": "TITLE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "COMPANY ",
+              "displayName": "COMPANY ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LOCATION ",
+              "displayName": "LOCATION ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "MATCH SCORE",
+              "displayName": "MATCH SCORE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TECH STACK",
+              "displayName": "TECH STACK",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PITCH",
+              "displayName": "PITCH",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "URL",
+              "displayName": "URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Cover Letter",
+              "displayName": "Cover Letter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "OUTREACH",
+              "displayName": "OUTREACH",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TAILORED RESUME BULLETS",
+              "displayName": "TAILORED RESUME BULLETS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TAILORED SUMMARY",
+              "displayName": "TAILORED SUMMARY",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "TAILORED SKILLS",
+              "displayName": "TAILORED SKILLS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "DATE POSTED",
+              "displayName": "DATE POSTED",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "SCRAPED AT",
+              "displayName": "SCRAPED AT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2192,
+        -176
+      ],
+      "id": "f5c37582-1421-45d8-84c3-f99321ecbca2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "g3GPvxgHsimoKJzS",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst originalJobs = $('Webhook').first().json.body.jobs || [];\nconst jobById = {};\nfor (const j of originalJobs) { jobById[j.job_id] = j; }\n\nlet text = \"\";\nif (input.content && input.content.parts && input.content.parts[0] && input.content.parts[0].text) {\n  text = input.content.parts[0].text;\n} else if (input.text) {\n  text = input.text;\n} else if (input.output) {\n  text = input.output;\n} else if (input.response) {\n  text = input.response;\n} else if (input.message) {\n  text = input.message;\n} else {\n  throw new Error(\"Could not find Gemini text output. Full input: \" + JSON.stringify(input));\n}\n\ntext = text.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\nlet jobs;\ntry {\n  jobs = JSON.parse(text);\n} catch (error) {\n  throw new Error(\"Could not parse Gemini response as JSON. Raw Gemini response: \" + text);\n}\n\nif (!Array.isArray(jobs)) {\n  if (jobs && typeof jobs === \"object\") {\n    jobs = [jobs];\n  } else {\n    throw new Error(\"Gemini response was not an array or object. Raw Gemini response: \" + text);\n  }\n}\n\n// --- Deterministic experience-gap penalty ---\n// Gemini is instructed to apply this penalty itself, but batch/JSON-mode\n// calls have been confirmed (empirically, against real jobs) to silently\n// skip it while still applying the skill-fit scoring correctly. Recompute\n// it in code so it's guaranteed to fire every time, instead of depending on\n// prompt compliance.\n\nconst MAX_PLAUSIBLE_YEARS = 20; // guards against false positives like \"85 years\n// of experience\" (company-history boilerplate) being misread as a job requirement.\n\nconst EXPLICIT_PATTERNS = [\n  /(\\d{1,2})\\s*\\+\\s*years?/gi,\n  /(\\d{1,2})\\s*-\\s*\\d{1,2}\\s*years?/gi,\n  /minimum\\s+(?:of\\s+)?(\\d{1,2})\\s*years?/gi,\n  /at\\s+least\\s+(\\d{1,2})\\s*years?/gi,\n  /(\\d{1,2})\\s*years?\\s+of\\s+(?:professional\\s+|relevant\\s+|related\\s+)?experience/gi,\n];\n\nconst TITLE_TIERS = [\n  [/\\b(staff|principal|director|head of|vp|vice president)\\b/i, 8],\n  [/\\b(senior|sr\\.?|lead)\\b/i, 6],\n  [/\\b(associate|analyst i\\b|junior|jr\\.?|entry.?level)\\b/i, 0],\n];\n\nfunction inferRequiredYears(title, description) {\n  const text = description || \"\";\n  for (const pattern of EXPLICIT_PATTERNS) {\n    pattern.lastIndex = 0;\n    let m;\n    while ((m = pattern.exec(text)) !== null) {\n      const years = parseInt(m[1], 10);\n      if (years > 0 && years <= MAX_PLAUSIBLE_YEARS) return years;\n    }\n  }\n  for (const [pattern, years] of TITLE_TIERS) {\n    if (pattern.test(title || \"\")) return years;\n  }\n  return 3; // mid-level default, matches \"no seniority modifier -> 2-5 years\"\n}\n\nfunction penaltyForYears(years) {\n  if (years <= 5) return 0;\n  if (years <= 7) return 15;\n  if (years <= 9) return 30;\n  return 45;\n}\n\nreturn jobs.map(job => {\n  const originalJob = jobById[job.job_id] || {};\n  const requiredYears = inferRequiredYears(job.title, originalJob.description);\n  const penalty = penaltyForYears(requiredYears);\n  const rawScore = Number(job.match_score) || 0;\n  const adjustedScore = Math.max(0, rawScore - penalty);\n\n  return {\n    json: {\n      job_id: job.job_id || \"\",\n      date_posted: originalJob.date_posted || \"\",\n      title: job.title || \"\",\n      company: job.company || \"\",\n      location: job.location || \"\",\n      url: job.url || \"\",\n      match_score: adjustedScore,\n      tech_stack: Array.isArray(job.tech_stack) ? job.tech_stack.join(\", \") : job.tech_stack || \"\",\n      missing_skills: Array.isArray(job.missing_skills) ? job.missing_skills.join(\", \") : job.missing_skills || \"\",\n      pitch: job.pitch || \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        16
+      ],
+      "id": "78f88437-456d-44db-a544-9e64208d28eb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, results: $('Code in JavaScript').all().map(item => item.json) } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2560,
+        -160
+      ],
+      "id": "4bb90f75-378b-48ae-8b91-64ccc1a5b2e6",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c6b0d28e-fce2-49f9-82c1-231781ec272f",
+              "leftValue": "={{ $json.match_score }}",
+              "rightValue": 75,
+              "operator": {
+                "type": "number",
+                "operation": "gte",
+                "name": "filter.operator.gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1744,
+        0
+      ],
+      "id": "a6591dfe-a531-4868-a200-4cb342c98d9c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are writing a personalized cover letter for Gurkirat Singh Wadhawan, applying to the {{ $json.title }} role at {{ $json.company }} ({{ $json.location }}).\n\nCANDIDATE RESUME:\nGURKIRAT SINGH WADHAWAN\nAnalytics Engineer | Snowflake | SQL | Python | AI Automation\n\nWORK EXPERIENCE\nAllegis Group \u2014 Business Analyst II, Treasury (February 2024 \u2013 Present)\nEmployee of the Year and Rising Star Award recipient.\n- Reduced procurement review preparation effort by 80% by designing an AI-ready procurement intelligence platform using Python, SQL, Snowflake, and deployment automation.\n- Built AI-powered analytics solutions using Snowflake Cortex Analyst, semantic models, SQL, and natural language querying.\n- Developed a centralized contract intelligence repository using Snowflake and Python.\n- Delivered AI and GenAI training to 300+ employees.\n- Built enterprise Tableau dashboards that uncovered $9M+ in savings opportunities.\n- Developed a unified corporate card spend analysis platform integrating more than 10 million records.\n- Created enterprise data products using Snowflake, SQL, Tableau, and reporting pipelines.\n\nThrivent Federal Credit Union \u2014 Business Management Analyst Intern\n- Led operational efficiency review and process optimization initiatives.\n\nKPMG \u2014 Analyst, IT Consulting\n- Developed cloud transformation strategies.\n- Performed business process assessments and ITIL gap analyses.\n- Created executive-level technology roadmaps.\n- Worked with financial services and manufacturing clients.\n\nEDUCATION\nMaster of Science in Information Systems, University of Maryland, Robert H. Smith School of Business\nBachelor of Engineering, Electronics, Mumbai University\n\nTECHNICAL SKILLS\nProgramming: Python, SQL, R\nData: Snowflake, Data Modeling, Semantic Models, Data Pipelines, ETL\nAnalytics: Tableau, Power BI, Executive Dashboards\nAI: Snowflake Cortex, OpenAI APIs, LLM Applications, AI Automation, Prompt Engineering\n\nWHY THIS ROLE IS A STRONG MATCH (from prior analysis):\n{{ $json.pitch }}\n\nRELEVANT TECH STACK FOR THIS ROLE:\n{{ $json.tech_stack }}\n\nSKILLS THE ROLE WANTS THAT AREN'T ON THE RESUME (do not claim these, address them only if it strengthens the letter honestly, e.g. framing as fast learner with adjacent experience):\n{{ $json.missing_skills }}\n\nTASK:\nWrite a 280-350 word cover letter for this specific role. Requirements:\n- Open with a specific, concrete hook tied to something real about {{ $json.company }} or the role itself \u2014 never \"I am writing to express my interest.\"\n- Reference 2-3 specific things from the resume (real project names, tools, outcomes) and connect them directly to what this role needs, using the tech stack and pitch above.\n- Match tone to the role: professional but not stiff, confident but not overblown.\n- Close with a specific, low-friction call to action, not \"I look forward to hearing from you.\"\n- Do not invent facts, metrics, or experience not present in the resume above.\n- Output only the letter body \u2014 no subject line, no \"Dear Hiring Manager\" placeholder, no explanation of what you wrote."
+            }
+          ]
+        },
+        "jsonOutput": false,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1856,
+        -192
+      ],
+      "id": "334ad77f-9bec-4a31-a996-93e75f3a86d0",
+      "name": "Message a model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Bijzgxtcanf2Xo5q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d1a1f8e2-1111-4a11-9a11-000000000001",
+              "leftValue": "={{ $json.match_score }}",
+              "rightValue": 40,
+              "operator": {
+                "type": "number",
+                "operation": "gte",
+                "name": "filter.operator.gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        16
+      ],
+      "id": "d1a1f8e2-2222-4a11-9a11-000000000002",
+      "name": "Drop below 40"
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Drop below 40').item.json;\nconst input = $input.first().json;\n\nlet text = \"\";\nif (input.content && input.content.parts && input.content.parts[0] && input.content.parts[0].text) {\n  text = input.content.parts[0].text;\n} else if (input.text) {\n  text = input.text;\n} else if (input.output) {\n  text = input.output;\n} else if (input.response) {\n  text = input.response;\n} else {\n  text = JSON.stringify(input);\n}\n\ntext = text.replace(/```/g, \"\").trim();\n\nreturn [{ json: { ...original, cover_letter: text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        -192
+      ],
+      "id": "e2b1a8f0-3333-4a11-9a11-000000000003",
+      "name": "Extract cover letter"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are tailoring ONE resume for Gurkirat Singh Wadhawan for this specific job.\n\nJOB:\nTitle: {{ $json.title }}\nCompany: {{ $json.company }}\nLocation: {{ $json.location }}\nJob Description: {{ JSON.stringify(($('Webhook').first().json.body.jobs.find(j => j.job_id === $json.job_id) || {}).description || '') }}\n\nCANDIDATE MASTER RESUME (JSON):\n{{ JSON.stringify($('Webhook').first().json.body.master_resume) }}\n\nThe master resume's \"experience\" entries each contain a pool of bullets, each tagged with the role families it's strongest for, plus a \"skills_keyword_bank\" of real, verified keywords/tools grouped by category.\n\n1. Select bullets across ALL experience entries, weighted by relevance, using these MINIMUM per-employer counts (never go below these, even for weaker-fit employers -- pull straight from that employer's bullet pool if needed to hit the minimum): Allegis Group >= 6, KPMG >= 4, Career Intelligence Platform (personal project, in progress) >= 3, Thrivent Federal Credit Union >= 2 (its full pool). Give MORE than the minimum (up to that employer's full bullet pool) to whichever employer/role is most relevant to this job. This resume is allowed to run to 2 pages -- prioritize concrete, substantive coverage of each employer over fitting one page.\n2. ORDER the selected bullets within each experience entry from most to least relevant to THIS job's description.\n3. Lightly reword bullets to mirror the job description's exact terminology and verb choice, only swapping to honest synonyms for the same scope of involvement -- never implying more ownership, seniority, or credit than the source bullet describes. Weave in exact-match keywords from skills_keyword_bank where genuinely reflected in that bullet's work.\n4. You have full freedom over structure and presentation: which summary_variant to use, which skills to list and in what order, how many bullets per employer, and how bullets are worded -- all aggressively tailored to mirror this job description's language and priorities.\n4a. Write for impact, not just accuracy -- lead each bullet with the business outcome or result, tools/technologies second. Vary action verbs across bullets.\n4b. When two bullets from the same employer are similarly relevant, prefer the one carrying a real quantified metric for the higher/earlier position.\n5. HARD LIMIT: never change, invent, or round a quantified metric to match numbers in the job description. Metrics must stay exactly as given in the source bullet. Do not introduce a tool, technology, or claim not in the source bullet or skills_keyword_bank.\n\nRETURN ONLY VALID JSON. No markdown, no explanations, no code fences.\n\nRequired Output Format:\n{\n  \"tailored_summary\": \"string\",\n  \"tailored_skills\": [\"string\", \"string\"],\n  \"tailored_resume_bullets\": [\n    { \"company\": \"string\", \"bullets\": [\"string\", \"string\"] }\n  ]\n}\n\nRules:\n- tailored_resume_bullets must include one entry per experience entry in the master resume.\n- tailored_summary: pick the summary_variant that best fits this job (or lightly blend/reword two variants).\n- tailored_skills: a reordered, job-relevant subset of skills_keyword_bank (only real entries from it, most relevant first).\n- Return only valid JSON, a single object (not an array)."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1088,
+        16
+      ],
+      "id": "a1b2c3d4-4444-4a11-9a11-000000000004",
+      "name": "Tailor resume",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Bijzgxtcanf2Xo5q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const original = $('Drop below 40').item.json;\nconst input = $input.first().json;\n\nlet text = \"\";\nif (input.content && input.content.parts && input.content.parts[0] && input.content.parts[0].text) {\n  text = input.content.parts[0].text;\n} else if (input.text) {\n  text = input.text;\n} else if (input.output) {\n  text = input.output;\n} else if (input.response) {\n  text = input.response;\n} else {\n  text = JSON.stringify(input);\n}\n\ntext = text.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\nlet tailored;\ntry {\n  tailored = JSON.parse(text);\n} catch (error) {\n  throw new Error(\"Could not parse tailoring response as JSON. Raw response: \" + text);\n}\n\nreturn [{\n  json: {\n    ...original,\n    tailored_resume_bullets: JSON.stringify(tailored.tailored_resume_bullets || []),\n    tailored_summary: tailored.tailored_summary || \"\",\n    tailored_skills: JSON.stringify(tailored.tailored_skills || [])\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        16
+      ],
+      "id": "b2c3d4e5-5555-4a11-9a11-000000000005",
+      "name": "Merge tailored"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Drop below 40",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Extract cover letter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drop below 40": {
+      "main": [
+        [
+          {
+            "node": "Tailor resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract cover letter": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tailor resume": {
+      "main": [
+        [
+          {
+            "node": "Merge tailored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge tailored": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "6e439079-fdd2-4d39-903c-14ec4c0e03f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d3ce498e486b5544092ed73394b659287765f55fcc0029487e69fdf2303be46f"
+  },
+  "nodeGroups": [],
+  "id": "RR6lTe0rKB4qzwHS",
+  "tags": []
+}

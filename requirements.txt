@@ -1,0 +1,5 @@
+requests
+python-jobspy
+pandas
+playwright
+reportlab

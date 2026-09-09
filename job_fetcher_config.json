@@ -1,0 +1,57 @@
+{
+  "n8n_webhook_url": "http://localhost:5678/webhook/job-ingest",
+  "search_terms": [
+    "Forward Deployed Engineer",
+    "Forward Deployed AI Engineer",
+    "GTM Engineer",
+    "Applied AI Engineer",
+    "AI Solutions Engineer",
+    "Customer Engineer",
+    "Data Analyst",
+    "Senior Data Analyst",
+    "Technical Business Analyst",
+    "Business Intelligence Analyst"
+  ],
+  "search_term_priorities": {
+    "Forward Deployed Engineer": 1,
+    "Forward Deployed AI Engineer": 1,
+    "GTM Engineer": 1,
+    "Applied AI Engineer": 1,
+    "AI Solutions Engineer": 1,
+    "Customer Engineer": 2,
+    "Data Analyst": 2,
+    "Senior Data Analyst": 2,
+    "Technical Business Analyst": 2,
+    "Business Intelligence Analyst": 2
+  },
+  "location": "United States",
+  "country_indeed": "USA",
+  "sites": [
+    "linkedin",
+    "indeed",
+    "google"
+  ],
+  "results_per_search": 100,
+  "hours_old": 168,
+  "fetch_linkedin_description": true,
+  "batch_size": 8,
+  "batch_delay_seconds": 20,
+  "maximum_description_characters": 30000,
+  "request_timeout_seconds": 300,
+  "maximum_request_attempts": 3,
+  "retry_delays_seconds": [
+    10,
+    30,
+    60
+  ],
+  "test_mode": false,
+  "test_mode_maximum_jobs": 3,
+  "minimum_preliminary_score": 35,
+  "allow_explicit_no_sponsorship": true,
+  "allow_security_clearance_jobs": false,
+  "minimum_salary": null,
+  "store_raw_records": true,
+  "save_run_logs": true,
+  "skip_already_analyzed": true,
+  "max_consecutive_failures": 3
+}
