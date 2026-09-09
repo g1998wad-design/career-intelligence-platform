@@ -1,6 +1,6 @@
 # Career Intelligence Platform
 
-An AI-powered pipeline that scrapes job postings, scores them against my resume with an LLM, generates a tailored one-page PDF resume + cover letter per job, and auto-fills the ATS application form — cutting job-search research time by roughly 70%. Now used by 10+ other job seekers.
+An AI-powered pipeline that scrapes job postings, scores them against a candidate's resume with an LLM, generates a tailored one-page PDF resume + cover letter per job, and auto-fills the ATS application form — cutting job-search research time by roughly 70%. Used by 10+ job seekers.
 
 ## Why
 
@@ -49,4 +49,4 @@ Requires a running n8n instance with a webhook workflow wired to a Gemini API ke
 
 ## Status
 
-Actively in use for my own job search. Not packaged as a hosted product — this is the real, working pipeline I run locally.
+Actively maintained and used by real job seekers day-to-day. Not packaged as a hosted product — this is a real, working pipeline run locally.
