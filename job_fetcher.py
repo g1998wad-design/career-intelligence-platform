@@ -23,6 +23,7 @@ import math
 import os
 import re
 import sqlite3
+import sys
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -381,6 +382,22 @@ def load_config() -> Dict[str, Any]:
         CONFIG_PATH.write_text(json.dumps(DEFAULT_CONFIG, indent=2), encoding="utf-8")
     cfg["n8n_webhook_url"] = os.getenv("N8N_WEBHOOK_URL", cfg["n8n_webhook_url"])
     return cfg
+
+
+LOOKBACK_CHOICES = {"1": 5, "2": 24, "3": 48, "4": 168}
+
+
+def prompt_lookback_hours(default_hours: int) -> int:
+    """Only prompts when run directly in a terminal by a human -- the 2hr
+    scheduled task invokes this script with no attached tty, so it silently
+    keeps the config default (168h) instead of hanging forever waiting for
+    input that will never come."""
+    if not sys.stdin.isatty():
+        return default_hours
+    print("\nHow far back should this scrape look for postings?")
+    print("  1) 5 hours\n  2) 1 day\n  3) 2 days\n  4) 1 week (default)")
+    choice = input("Choice [1-4, Enter for default]: ").strip()
+    return LOOKBACK_CHOICES.get(choice, default_hours)
 
 
 _MASTER_RESUME_CACHE: Optional[Dict[str, Any]] = None
@@ -927,6 +944,7 @@ def save_stats(stats: Stats, cfg: Dict[str, Any]) -> None:
 
 def run() -> None:
     cfg = load_config()
+    cfg["hours_old"] = prompt_lookback_hours(int(cfg["hours_old"]))
     init_db()
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     stats = Stats(run_id=run_id, started_at=now())

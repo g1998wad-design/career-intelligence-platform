@@ -203,7 +203,7 @@ def trim_to_fit_one_page(bullets_by_company: Dict[str, List[str]], max_total: in
 
 def _render_story(master: Dict[str, Any], contact: Dict[str, Any], summary: str,
                    tailored_skills: List[str], bullets_by_company: Dict[str, List[str]],
-                   styles: Dict[str, ParagraphStyle]) -> List[Any]:
+                   styles: Dict[str, ParagraphStyle], projects_first: bool = False) -> List[Any]:
     NAME_STYLE = styles["NAME_STYLE"]
     CONTACT_STYLE = styles["CONTACT_STYLE"]
     SUMMARY_STYLE = styles["SUMMARY_STYLE"]
@@ -231,7 +231,7 @@ def _render_story(master: Dict[str, Any], contact: Dict[str, Any], summary: str,
         story.append(Paragraph("SKILLS", SECTION_STYLE))
         story.append(Paragraph(", ".join(tailored_skills), SKILLS_STYLE))
 
-    story.append(Paragraph("EXPERIENCE", SECTION_STYLE))
+    experience_block: List[Any] = [Paragraph("EXPERIENCE", SECTION_STYLE)]
     # Preserve master-resume ordering (reverse-chronological as authored),
     # skipping any employer Gemini didn't select bullets for, and skipping
     # anything tagged as a project -- those get their own section below.
@@ -243,31 +243,43 @@ def _render_story(master: Dict[str, Any], contact: Dict[str, Any], summary: str,
         if not bullets:
             continue
         header = f"{entry.get('title', '')} — {company}"
-        story.append(Paragraph(header, JOB_HEADER_STYLE))
+        experience_block.append(Paragraph(header, JOB_HEADER_STYLE))
         sub_bits = [b for b in [entry.get("dates"), entry.get("location")] if b]
         if sub_bits:
-            story.append(Paragraph(" | ".join(sub_bits), JOB_SUB_STYLE))
+            experience_block.append(Paragraph(" | ".join(sub_bits), JOB_SUB_STYLE))
         # Always shown, independent of Gemini's per-job bullet picks -- a real
         # standout credential (e.g. Allegis's Employee of the Year / Rising
         # Star) shouldn't be left to chance on whether the LLM chose to surface it.
         if entry.get("context"):
-            story.append(Paragraph(entry["context"], CONTEXT_STYLE))
+            experience_block.append(Paragraph(entry["context"], CONTEXT_STYLE))
         items = [ListItem(Paragraph(b, BULLET_STYLE), leftIndent=12) for b in bullets]
-        story.append(ListFlowable(items, bulletType="bullet", start="•", leftIndent=14, spaceBefore=1, spaceAfter=4))
+        experience_block.append(ListFlowable(items, bulletType="bullet", start="•", leftIndent=14, spaceBefore=1, spaceAfter=4))
 
     project_entries = [e for e in master.get("experience", []) if e.get("type") == "project" and bullets_by_company.get(e["company"])]
+    project_block: List[Any] = []
     if project_entries:
-        story.append(Paragraph("PROJECTS", SECTION_STYLE))
+        project_block.append(Paragraph("PROJECTS", SECTION_STYLE))
         for entry in project_entries:
             company = entry["company"]
             bullets = bullets_by_company.get(company)
             header = f"{entry.get('title', '')} — {company}" if entry.get("title") else company
-            story.append(Paragraph(header, JOB_HEADER_STYLE))
+            project_block.append(Paragraph(header, JOB_HEADER_STYLE))
             sub_bits = [b for b in [entry.get("dates"), entry.get("location")] if b]
             if sub_bits:
-                story.append(Paragraph(" | ".join(sub_bits), JOB_SUB_STYLE))
+                project_block.append(Paragraph(" | ".join(sub_bits), JOB_SUB_STYLE))
             items = [ListItem(Paragraph(b, BULLET_STYLE), leftIndent=12) for b in bullets]
-            story.append(ListFlowable(items, bulletType="bullet", start="•", leftIndent=14, spaceBefore=1, spaceAfter=4))
+            project_block.append(ListFlowable(items, bulletType="bullet", start="•", leftIndent=14, spaceBefore=1, spaceAfter=4))
+
+    # projects_first is opt-in (default False) so the normal per-job pipeline's
+    # section order never changes -- only callers like the generic AI/agentic
+    # resume variant, where the personal project is the strongest evidence,
+    # set it explicitly.
+    if projects_first:
+        story.extend(project_block)
+        story.extend(experience_block)
+    else:
+        story.extend(experience_block)
+        story.extend(project_block)
 
     if master.get("education"):
         story.append(Paragraph("EDUCATION", SECTION_STYLE))
@@ -294,11 +306,27 @@ def _render_story(master: Dict[str, Any], contact: Dict[str, Any], summary: str,
     return story
 
 
+# Role families where the personal AI project is stronger, more direct evidence
+# than the day job (Treasury/Finance BA work) -- for these, lead with Projects
+# instead of Experience. A simple title-keyword match since job_analysis doesn't
+# carry whichever role-family tag Gemini used internally for tailoring.
+PROJECTS_FIRST_TITLE_KEYWORDS = [
+    "forward deployed", "gtm engineer", "applied ai", "ai solutions",
+    "ai engineer", "customer engineer", "ai automation",
+]
+
+
+def _should_lead_with_projects(title: str) -> bool:
+    t = (title or "").lower()
+    return any(kw in t for kw in PROJECTS_FIRST_TITLE_KEYWORDS)
+
+
 def build_pdf(row: sqlite3.Row, master: Dict[str, Any], out_path: Path, max_bullets: int) -> None:
     contact = master.get("contact", {})
     tailored_bullets = safe_json(row["tailored_resume_bullets"], [])
     tailored_skills = safe_json(row["tailored_skills"], [])
     summary = row["tailored_summary"] or master.get("summary_variants", {}).get("default", "")
+    projects_first = _should_lead_with_projects(row["title"])
 
     # Map company -> full metadata (title/dates/location) from the master resume,
     # since Gemini's output only carries company + bullets.
@@ -323,7 +351,7 @@ def build_pdf(row: sqlite3.Row, master: Dict[str, Any], out_path: Path, max_bull
     n_pages = None
     while True:
         styles = build_styles(scale)
-        story = _render_story(master, contact, summary, tailored_skills, bullets_by_company, styles)
+        story = _render_story(master, contact, summary, tailored_skills, bullets_by_company, styles, projects_first=projects_first)
         margin_scale = max(scale, 0.85)  # margins shrink less aggressively than text
         doc = SimpleDocTemplate(
             str(out_path), pagesize=LETTER,
