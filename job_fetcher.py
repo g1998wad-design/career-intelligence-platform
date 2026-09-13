@@ -276,6 +276,7 @@ class Stats:
     filtered_salary: int = 0
     filtered_seniority: int = 0
     cached_skipped: int = 0
+    previously_failed_skipped: int = 0
     eligible: int = 0
     sent: int = 0
     failed: int = 0
@@ -951,6 +952,19 @@ def run() -> None:
     raw_records: List[Dict[str, Any]] = []
     candidates: Dict[str, Dict[str, Any]] = {}
 
+    # Jobs that failed last run (e.g. n8n returned an empty/non-JSON response
+    # because the job scored below the Gemini match_score filter, which is a
+    # dead end in the n8n workflow -- see TooManyConsecutiveFailures). Note:
+    # save_job() below does an INSERT OR REPLACE using this run's freshly
+    # scraped fields, which resets status to NULL for any job that's still
+    # eligible today, so a job's "failed" mark would otherwise be silently
+    # wiped and the exact same job retried (and likely re-failed) again --
+    # read the set BEFORE that happens so we can skip re-queueing it instead.
+    with db() as con:
+        previously_failed_ids = {
+            row[0] for row in con.execute("SELECT job_id FROM jobs WHERE status='failed'")
+        }
+
     print(f"Run {run_id} started | test_mode={cfg['test_mode']}")
     # In test_mode, only scrape the first couple of search terms -- test_mode
     # only ever sends test_mode_maximum_jobs to n8n anyway, so scraping all
@@ -993,10 +1007,15 @@ def run() -> None:
     eligible_jobs: List[Dict[str, Any]] = []
     for j in sorted(candidates.values(), key=lambda x: (-x["preliminary_score"], x["search_priority"])):
         is_eligible = eligible(j, cfg, stats)
+        was_previously_failed = j["job_id"] in previously_failed_ids
         save_job(j)
         if is_eligible:
             if cfg.get("skip_already_analyzed", True) and already_analyzed(j["job_id"]):
                 stats.cached_skipped += 1
+                continue
+            if was_previously_failed:
+                stats.previously_failed_skipped += 1
+                set_status(j["job_id"], "failed")  # save_job() just reset it to NULL -- restore the mark
                 continue
             eligible_jobs.append(j)
 
@@ -1004,7 +1023,8 @@ def run() -> None:
         eligible_jobs = eligible_jobs[:int(cfg["test_mode_maximum_jobs"])]
 
     stats.eligible = len(eligible_jobs)
-    print(f"Eligible unique jobs: {len(eligible_jobs)} (skipped {stats.cached_skipped} already analyzed)")
+    print(f"Eligible unique jobs: {len(eligible_jobs)} (skipped {stats.cached_skipped} already analyzed, "
+          f"{stats.previously_failed_skipped} previously failed)")
     size = int(cfg["batch_size"])
     try:
         for start in range(0, len(eligible_jobs), size):
