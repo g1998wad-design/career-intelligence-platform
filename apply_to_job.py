@@ -102,7 +102,7 @@ def main() -> None:
         return
 
     gr.OUTPUT_DIR.mkdir(exist_ok=True)
-    base = f"{gr.slug(row['company'])}__{gr.slug(row['title'])}__{row['job_id']}"
+    base = row["job_id"]
     resume_path = gr.OUTPUT_DIR / f"{base}.pdf"
     gr.build_pdf(row, master, resume_path, max_bullets=11)
     print(f"  Match score: {row['match_score']}")

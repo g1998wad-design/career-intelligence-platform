@@ -27,12 +27,12 @@
   "location": "United States",
   "country_indeed": "USA",
   "sites": [
-    "linkedin",
     "indeed",
-    "google"
+    "google",
+    "linkedin"
   ],
   "results_per_search": 100,
-  "hours_old": 168,
+  "hours_old": 24,
   "fetch_linkedin_description": true,
   "batch_size": 8,
   "batch_delay_seconds": 20,
@@ -53,5 +53,6 @@
   "store_raw_records": true,
   "save_run_logs": true,
   "skip_already_analyzed": true,
-  "max_consecutive_failures": 3
+  "max_consecutive_failures": 3,
+  "use_n8n": false
 }

@@ -47,6 +47,12 @@ LOG_PATH = BASE_DIR / "batch_run_log.json"
 RESUMES_DIR = BASE_DIR / "resumes"
 SCREENSHOT_DIR = BASE_DIR / "autofill_screenshots"
 
+# A copy of the real "Gurkirat" Chrome profile, deliberately stored OUTSIDE this
+# git repo so it can never be committed/pushed. Used only with --use-chrome-profile
+# so LinkedIn Easy Apply (and other login-gated ATS pages) can actually be reached --
+# a fresh anonymous browser context has no session and just hits a login wall.
+CHROME_PROFILE_DIR = Path.home() / ".js_basics_automation" / "chrome_profile"
+
 # label substring -> profile.json key. Checked only after the sensitive-word
 # check below, so a field can never match both.
 FIELD_KEYWORDS: Dict[str, List[str]] = {
@@ -396,7 +402,7 @@ def fill_frame(frame: Frame, profile: Dict[str, Any], job: Dict[str, Any],
 
 
 APPLY_BUTTON_PATTERN = re.compile(
-    r"^\s*apply(\s+for\s+this\s+(job|position|role))?(\s+now)?\s*[»›→>»❯▸]*\s*$", re.IGNORECASE
+    r"^\s*(easy\s+)?apply(\s+for\s+this\s+(job|position|role))?(\s+now)?\s*[»›→>»❯▸]*\s*$", re.IGNORECASE
 )
 COOKIE_BUTTON_PATTERN = re.compile(r"^\s*(accept(\s+all)?(\s+cookies)?|i\s+accept|got\s+it|allow\s+all)\s*$", re.IGNORECASE)
 
@@ -448,6 +454,39 @@ def click_apply_button(page: Page) -> Page:
         except Exception:
             continue
     return page
+
+
+def has_next_step(page: Page) -> bool:
+    """Return whether a clearly labeled next-step control is visible."""
+    for frame in page.frames:
+        try:
+            candidates = frame.get_by_role("button", name=NEXT_STEP_BUTTON_PATTERN).all() + \
+                         frame.get_by_role("link", name=NEXT_STEP_BUTTON_PATTERN).all()
+            if any(el.is_visible() for el in candidates):
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def click_next_step(page: Page) -> bool:
+    """Advance a visible, clearly labeled application step on an ATS page."""
+    for frame in page.frames:
+        try:
+            candidates = frame.get_by_role("button", name=NEXT_STEP_BUTTON_PATTERN).all() + \
+                         frame.get_by_role("link", name=NEXT_STEP_BUTTON_PATTERN).all()
+            for el in candidates:
+                if el.is_visible():
+                    el.click(timeout=5000)
+                    try:
+                        page.wait_for_load_state("domcontentloaded", timeout=8000)
+                    except Exception:
+                        pass
+                    page.wait_for_timeout(1200)
+                    return True
+        except Exception:
+            continue
+    return False
 
 
 def attempt_auto_submit(page: Page, ats: str) -> Dict[str, Any]:
@@ -514,32 +553,26 @@ def process_job(page: Page, job: Dict[str, Any], profile: Dict[str, Any],
         "url": job.get("url"), "timestamp": now(),
     }
 
-    if not job.get("url"):
+    listing_url = job.get("url") or ""
+    apply_url = job.get("apply_url") or ""
+    # Prefer an employer/ATS URL captured by the scraper. Aggregator-only
+    # records have apply_url == url, so they still start at the listing and
+    # follow its Apply button below.
+    from urllib.parse import urlparse
+    aggregator_hosts = {"linkedin.com", "www.linkedin.com", "indeed.com", "www.indeed.com",
+                        "google.com", "www.google.com"}
+    apply_host = (urlparse(apply_url).hostname or "").lower()
+    start_url = apply_url if apply_url and apply_host not in aggregator_hosts else listing_url
+
+    if not start_url:
         result.update(status="error", error="No posting URL for this job", ats="unknown")
         return result, page
 
-    ats = detect_ats(job["url"])
-    result["ats"] = ats
-
-    from urllib.parse import urlparse
-    host = (urlparse(job["url"]).hostname or "").lower()
-    if host in {"www.linkedin.com", "linkedin.com", "www.indeed.com", "indeed.com"}:
-        result.update(
-            status="needs_review",
-            filled_fields=[],
-            unmatched_fields=[],
-            needs_review_fields=[
-                f"No direct ATS application link was found for this job -- this URL is just "
-                f"the {host} listing page, which requires being logged in to apply (Easy Apply "
-                f"or an external redirect). Not attempted here; apply manually."
-            ],
-        )
-        print(f"\n{'='*70}\n{job.get('company')} -- {job.get('title')}  [{host}, no direct link]")
-        print("  Skipped auto-fill -- no direct ATS URL available for this job, apply manually.")
-        return result, page
+    LI_INDEED_HOSTS = {"www.linkedin.com", "linkedin.com", "www.indeed.com", "indeed.com"}
+    start_host = (urlparse(start_url).hostname or "").lower()
 
     try:
-        page.goto(job["url"], wait_until="domcontentloaded", timeout=30000)
+        page.goto(start_url, wait_until="domcontentloaded", timeout=30000)
         try:
             # Heavy JS-SPA ATS platforms (Paycom, custom portals like TCS iBegin,
             # some Workday tenants) are still rendering right after DOMContentLoaded --
@@ -569,6 +602,18 @@ def process_job(page: Page, job: Dict[str, Any], profile: Dict[str, Any],
         except Exception:
             pass
 
+    # Clicking Apply/Easy Apply may (a) redirect off-site to the real ATS, or
+    # (b) open a modal in-page (LinkedIn/Indeed's native flow) without changing
+    # the URL at all -- both are handled the same way below: just scan whatever
+    # frames now exist for fillable fields. We only conclude "nothing to fill
+    # here" if that scan comes back completely empty AND we're still stuck on
+    # LinkedIn/Indeed (the retry below already rules out slow-rendering SPAs).
+    final_host = (urlparse(page.url).hostname or "").lower()
+    ats = detect_ats(page.url)
+    result["ats"] = ats
+    if page.url != start_url:
+        result["final_url"] = page.url
+
     filled: List[str] = []
     needs_review: List[str] = []
     unmatched: List[str] = []
@@ -578,15 +623,58 @@ def process_job(page: Page, job: Dict[str, Any], profile: Dict[str, Any],
         fill_frame(frame, profile, job, filled, needs_review, unmatched, seen_radio_groups)
 
     # If nothing was found at all, the page may still have been mid-render (SPA
-    # hydration finishing late) -- give it one more chance before giving up.
-    # Lists were empty going in, so a clean re-scan is safe (nothing to dedupe).
+    # hydration finishing late, or a modal still animating in) -- give it one
+    # more chance before giving up. Lists were empty going in, so a clean
+    # re-scan is safe (nothing to dedupe).
     if not filled and not needs_review and not unmatched:
         page.wait_for_timeout(3000)
         seen_radio_groups = set()
         for frame in page.frames:
             fill_frame(frame, profile, job, filled, needs_review, unmatched, seen_radio_groups)
 
-    if ats in LOW_CONFIDENCE_ATS:
+    # Workday is commonly a multi-step form. Walk forward only when this step
+    # had no unanswered or unrecognized fields; stop for review at the first
+    # uncertain step. The final Submit remains gated by the phone approval API.
+    workday_steps = 1 if ats == "workday" else 0
+    if ats == "workday":
+        for _ in range(7):
+            if needs_review or unmatched:
+                break
+            if not click_next_step(page):
+                break
+            workday_steps += 1
+            seen_radio_groups = set()
+            step_filled_before = len(filled)
+            step_review_before = len(needs_review)
+            step_unmatched_before = len(unmatched)
+            for frame in page.frames:
+                fill_frame(frame, profile, job, filled, needs_review, unmatched, seen_radio_groups)
+            if (len(filled) == step_filled_before
+                    and len(needs_review) == step_review_before
+                    and len(unmatched) == step_unmatched_before
+                    and has_next_step(page)):
+                # A step with no detectable form fields may be an interstitial
+                # or verification page; don't click through it automatically.
+                needs_review.append("Workday showed a step with no recognized fields; review the form manually")
+                break
+        else:
+            if has_next_step(page):
+                needs_review.append("Workday exceeded the 8-step automatic navigation limit")
+
+    if start_host in LI_INDEED_HOSTS and final_host in LI_INDEED_HOSTS and not filled and not needs_review and not unmatched:
+        result.update(
+            status="needs_review", filled_fields=[], unmatched_fields=[],
+            needs_review_fields=[
+                f"No fillable fields found and still on {start_host} after clicking Apply -- "
+                f"likely login-gated (not actually logged in) or no Apply/Easy Apply button was "
+                f"found on this listing. Not attempted here; apply manually."
+            ],
+        )
+        print(f"\n{'='*70}\n{job.get('company')} -- {job.get('title')}  [{start_host}, nothing to fill]")
+        print("  Skipped auto-fill -- no form/modal appeared after clicking Apply.")
+        return result, page
+
+    if ats in LOW_CONFIDENCE_ATS and ats != "workday":
         needs_review.insert(0, f"[low confidence] {ats} uses a multi-step application flow -- verify every field by hand")
 
     is_clean = not needs_review and not unmatched
@@ -613,6 +701,9 @@ def process_job(page: Page, job: Dict[str, Any], profile: Dict[str, Any],
         filled_fields=filled, needs_review_fields=needs_review, unmatched_fields=unmatched,
         auto_submit_detail=submit_detail,
     )
+    if ats == "workday":
+        result["workday_steps"] = workday_steps
+        result["confidence_note"] = "Workday steps were advanced only when all detected fields were filled; review the final page before approval."
 
     print(f"\n{'='*70}\n{job.get('company')} -- {job.get('title')}  [{ats}]")
     print(f"  Filled: {len(filled)}   Needs review: {len(needs_review)}   Unmatched: {len(unmatched)}   Status: {status}")
@@ -636,6 +727,11 @@ def main() -> None:
                               "workday/icims/taleo/successfactors posting, or any form where a Next/"
                               "Continue button is still visible is left for manual review as usual -- "
                               "this never guesses on sensitive or ambiguous fields.")
+    parser.add_argument("--use-chrome-profile", action="store_true",
+                         help="Launch using a copy of your real logged-in Chrome profile instead of a "
+                              "fresh anonymous session, so login-gated pages (LinkedIn Easy Apply, etc) "
+                              "can actually be reached. Requires the profile to already be copied to "
+                              f"{CHROME_PROFILE_DIR}.")
     args = parser.parse_args()
 
     batch = load_json(BATCH_PATH, "selected_batch.json")
@@ -651,11 +747,26 @@ def main() -> None:
         print(f"\n{'!'*70}\nAUTO-SUBMIT ENABLED: 100%-clean applications on {sorted(AUTO_SUBMIT_ALLOWED_ATS)} "
               f"will be submitted without pausing for review.\n{'!'*70}\n")
 
+    if args.use_chrome_profile and not CHROME_PROFILE_DIR.exists():
+        raise SystemExit(f"--use-chrome-profile given but no profile found at {CHROME_PROFILE_DIR}.")
+
     results = []
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=args.headless)
-        context = browser.new_context()
-        page = context.new_page()
+        browser = None
+        if args.use_chrome_profile:
+            # launch_persistent_context returns a context directly (no separate
+            # Browser object) -- channel="chrome" uses the real installed Google
+            # Chrome binary (not Playwright's bundled Chromium) since the copied
+            # profile's format and macOS Keychain access (for decrypting saved
+            # cookies) are tied to the actual Chrome app identity.
+            context = p.chromium.launch_persistent_context(
+                str(CHROME_PROFILE_DIR), headless=args.headless, channel="chrome",
+            )
+            page = context.pages[0] if context.pages else context.new_page()
+        else:
+            browser = p.chromium.launch(headless=args.headless)
+            context = browser.new_context()
+            page = context.new_page()
         try:
             for i, job in enumerate(batch):
                 result, page = process_job(page, job, profile, headless=args.headless,
@@ -698,7 +809,8 @@ def main() -> None:
                 context.close()
             except Exception:
                 pass
-            browser.close()
+            if browser:
+                browser.close()
 
 
 if __name__ == "__main__":

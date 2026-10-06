@@ -3,3 +3,7 @@ python-jobspy
 pandas
 playwright
 reportlab
+anthropic
+pypdf
+fastapi
+uvicorn[standard]

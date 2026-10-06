@@ -150,7 +150,9 @@ DEFAULT_CONFIG = {
     },
     "location": "United States",
     "country_indeed": "USA",
-    "sites": ["linkedin", "indeed", "google"],
+    # LinkedIn's terms prohibit third-party scraping and activity automation.
+    # Keep the unattended discovery pipeline on the other configured sources.
+    "sites": ["indeed", "google", "linkedin"],
     # Maximize interviews, minimize false negatives: cast a wide net.
     "results_per_search": 100,
     # 1 week lookback. Deduplication (url/fingerprint) handles repeats,
@@ -162,6 +164,10 @@ DEFAULT_CONFIG = {
     # working and outputs are landing in job_analysis.
     "batch_size": 1,
     "batch_delay_seconds": 20,
+    # Set to false to skip the n8n webhook entirely — jobs stay at
+    # status='discovered' in the DB and are picked up by analyze_jobs.py
+    # (Claude-based scoring/tailoring). Use true only if you're running n8n.
+    "use_n8n": False,
     "maximum_description_characters": 30000,
     "request_timeout_seconds": 300,
     "maximum_request_attempts": 3,
@@ -208,6 +214,15 @@ POSITIVE = {
     "a/b testing": 6, "experimentation": 5, "funnel analysis": 6,
     "cohort analysis": 6, "retention": 4, "activation": 4,
     "user segmentation": 4, "product metrics": 5,
+    # GTM Engineer is also an explicit search term but had ZERO matching
+    # keywords -- a posting only scored well by accident (via generic SQL/
+    # dashboard overlap), so most were getting archived before Claude ever
+    # saw them. Weighted "gtm engineer" at parity with "forward deployed"
+    # since both are literal search terms.
+    "gtm engineer": 12, "go-to-market": 8, "revenue operations": 6,
+    "revops": 6, "sales engineering": 6, "pipeline generation": 5,
+    "salesforce": 5, "hubspot": 4, "crm": 4, "outbound": 4,
+    "account-based marketing": 4, "abm": 4,
 }
 NEGATIVE_TITLE = {
     "plc": -45, "embedded": -40, "electrical engineer": -35,
@@ -272,6 +287,7 @@ class Stats:
     url_duplicates: int = 0
     fingerprint_duplicates: int = 0
     filtered_relevance: int = 0
+    rescued_by_title: int = 0
     filtered_clearance: int = 0
     filtered_salary: int = 0
     filtered_seniority: int = 0
@@ -281,6 +297,7 @@ class Stats:
     sent: int = 0
     failed: int = 0
     consecutive_failures: int = 0
+    recent_failure_companies: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
 
 
@@ -360,6 +377,34 @@ def domain(url: str) -> str:
         return (urlparse(url).hostname or "").lower().removeprefix("www.")
     except Exception:
         return ""
+
+
+def is_direct_apply_url(url: str) -> bool:
+    """Return whether a link appears to leave the job-listing aggregator."""
+    host = domain(url)
+    if not host:
+        return False
+    aggregators = ("linkedin.com", "indeed.com", "google.com")
+    return not any(host == root or host.endswith("." + root) for root in aggregators)
+
+
+def merge_direct_apply_link(job: Dict[str, Any]) -> bool:
+    """Upgrade an existing cross-source match with a non-aggregator apply URL."""
+    candidate = job.get("apply_url") or ""
+    if not is_direct_apply_url(candidate):
+        return False
+    with db() as con:
+        row = con.execute(
+            "SELECT apply_url FROM jobs WHERE fingerprint=? ORDER BY last_seen_at DESC LIMIT 1",
+            (job["fingerprint"],),
+        ).fetchone()
+        if row is None or is_direct_apply_url(row["apply_url"] or ""):
+            return False
+        con.execute(
+            "UPDATE jobs SET apply_url=?, last_seen_at=? WHERE fingerprint=?",
+            (candidate, now(), job["fingerprint"]),
+        )
+    return True
 
 
 def year_month(date_str: str) -> str:
@@ -763,10 +808,10 @@ def normalize_record(raw: Dict[str, Any], search_term: str, priority: int,
     url = normalize_url(raw.get("job_url") or raw.get("url") or "")
     if not title or not company or not url:
         return None
-    # job_url_direct is the actual company/ATS application link JobSpy
-    # scrapes for Indeed postings (Workday/Greenhouse/iCIMS/etc, not a
-    # tracking redirect). LinkedIn postings don't have one -- JobSpy leaves
-    # it blank there, so we fall back to the LinkedIn listing url itself.
+    # JobSpy can extract LinkedIn's outbound apply URL when
+    # linkedin_fetch_description=True. Other sources may also provide a
+    # direct employer/ATS URL. When none is present, keep the posting URL and
+    # mark it as not a direct application target in downstream review.
     apply_url = normalize_url(raw.get("job_url_direct") or "") or url
     li_id_match = re.search(r"linkedin\.com/jobs/view/(\d+)", url)
     applicant_count = _LINKEDIN_APPLICANT_COUNTS.get(li_id_match.group(1)) if li_id_match else None
@@ -814,9 +859,39 @@ def normalize_record(raw: Dict[str, Any], search_term: str, priority: int,
     }
 
 
+
+# `pre_score` is a cheap keyword-weighted heuristic with no vocabulary for
+# a lot of legitimate BA-adjacent phrasing (market research, business
+# analysis, consulting, credit risk, strategy, etc). That silently
+# hard-archived plausible-titled jobs -- e.g. a Capital One "Sr. Business
+# Analyst, Premium Products" posting scored 28 by pre_score but 68 when
+# actually read -- before the free, no-API daily-job-screen task (or a
+# human) ever got a chance to evaluate them. Rather than trying to keyword-
+# tune pre_score to zero false negatives, rescue title-plausible jobs by
+# title match so they still reach status='discovered' and get a real read.
+# A floor score still filters out obvious noise/mismatched scrapes.
+TITLE_RESCUE_PATTERN = re.compile(
+    r"\b(business analyst|data analyst|analytics engineer|business intelligence|"
+    r"bi analyst|solutions? engineer|forward deployed|implementation engineer|"
+    r"product analyst|data scientist)\b"
+)
+TITLE_RESCUE_EXCLUDE_PATTERN = re.compile(
+    r"\b(director|vp|vice president|principal|chief|svp|head of)\b"
+)
+TITLE_RESCUE_MINIMUM_SCORE = 15
+
+
 def eligible(j: Dict[str, Any], cfg: Dict[str, Any], stats: Stats) -> bool:
     if j["preliminary_score"] < int(cfg["minimum_preliminary_score"]):
-        stats.filtered_relevance += 1; j["status"] = "archived_low_relevance"; return False
+        t = norm(j["title"])
+        title_rescued = (
+            j["preliminary_score"] >= TITLE_RESCUE_MINIMUM_SCORE
+            and TITLE_RESCUE_PATTERN.search(t)
+            and not TITLE_RESCUE_EXCLUDE_PATTERN.search(t)
+        )
+        if not title_rescued:
+            stats.filtered_relevance += 1; j["status"] = "archived_low_relevance"; return False
+        stats.rescued_by_title += 1
     if j["seniority"] == "director_plus":
         stats.filtered_seniority += 1; j["status"] = "archived_too_senior"; return False
     if j["clearance_status"] != "not_mentioned" and not cfg["allow_security_clearance_jobs"]:
@@ -920,9 +995,25 @@ def process_batch(batch: List[Dict[str, Any]], cfg: Dict[str, Any], stats: Stats
     stats.errors.append(f"{j['job_id']}: {error}")
     print(f"  Failed: {j['title']} at {j['company']} | {error}")
     max_failures = int(cfg.get("max_consecutive_failures", 3))
+    stats.recent_failure_companies.append(j["company"])
+    stats.recent_failure_companies = stats.recent_failure_companies[-max_failures:]
     if stats.consecutive_failures >= max_failures:
-        print(f"  {stats.consecutive_failures} jobs failed in a row -- this looks systemic "
-              f"(broken credential, dead API key, downstream outage), not per-job problems.")
+        # A genuine systemic outage (dead credential, broken Sheets/Gemini
+        # integration) fails every job regardless of employer. A single
+        # employer spamming many near-identical postings (e.g. Deloitte's
+        # dozens of "Forward Deployed Engineer" variants, sorted next to
+        # each other since they share similar preliminary_score) instead
+        # produces a same-company failure cluster -- that's a per-posting
+        # quality problem, not an outage, so don't halt the whole run over it.
+        if len(set(stats.recent_failure_companies)) == 1:
+            print(f"  {stats.consecutive_failures} jobs failed in a row, all from "
+                  f"{j['company']} -- looks like a company-specific posting-quality "
+                  f"issue, not a systemic outage. Continuing without halting the run.")
+            stats.consecutive_failures = 0
+            return
+        print(f"  {stats.consecutive_failures} jobs failed in a row across multiple companies -- "
+              f"this looks systemic (broken credential, dead API key, downstream outage), "
+              f"not per-job problems.")
         print("  Stopping this run cleanly to avoid burning more calls into the same issue.")
         raise TooManyConsecutiveFailures(
             f"{stats.consecutive_failures} consecutive failures. Last error: {error}"
@@ -943,9 +1034,12 @@ def save_stats(stats: Stats, cfg: Dict[str, Any]) -> None:
         (LOG_DIR / f"{stats.run_id}.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def run() -> None:
+def run(hours_old_override: Optional[int] = None) -> None:
     cfg = load_config()
-    cfg["hours_old"] = prompt_lookback_hours(int(cfg["hours_old"]))
+    if hours_old_override is not None:
+        cfg["hours_old"] = hours_old_override
+    else:
+        cfg["hours_old"] = prompt_lookback_hours(int(cfg["hours_old"]))
     init_db()
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     stats = Stats(run_id=run_id, started_at=now())
@@ -963,6 +1057,16 @@ def run() -> None:
     with db() as con:
         previously_failed_ids = {
             row[0] for row in con.execute("SELECT job_id FROM jobs WHERE status='failed'")
+        }
+        # Some employers (Deloitte's "Forward Deployed Engineer, Frontier
+        # GenAI" is the recurring offender) repost the exact same role under
+        # a fresh job_id every scrape, so the job_id check above never
+        # catches it. Fall back to a normalized (company, title) match --
+        # if this role already failed once, it's overwhelmingly likely to
+        # fail (i.e. score below Gemini's match_score filter) every time.
+        previously_failed_title_company = {
+            (company_name(row[0]), job_title(row[1]))
+            for row in con.execute("SELECT company, title FROM jobs WHERE status='failed'")
         }
 
     print(f"Run {run_id} started | test_mode={cfg['test_mode']}")
@@ -988,13 +1092,26 @@ def run() -> None:
                 j = normalize_record(raw, term, priority, cfg)
                 if not j: continue
                 stats.normalized += 1
-                if seen("url", j["url"]): stats.url_duplicates += 1; continue
-                if seen("fingerprint", j["fingerprint"]): stats.fingerprint_duplicates += 1; continue
+                if seen("url", j["url"]):
+                    stats.url_duplicates += 1
+                    merge_direct_apply_link(j)
+                    continue
+                if seen("fingerprint", j["fingerprint"]):
+                    stats.fingerprint_duplicates += 1
+                    merge_direct_apply_link(j)
+                    continue
                 # Global in-run deduplication. Keep higher-scoring version.
                 old = candidates.get(j["fingerprint"])
                 if old:
                     stats.fingerprint_duplicates += 1
-                    if j["preliminary_score"] > old["preliminary_score"]: candidates[j["fingerprint"]] = j
+                    old_has_direct = is_direct_apply_url(old.get("apply_url", ""))
+                    new_has_direct = is_direct_apply_url(j.get("apply_url", ""))
+                    if j["preliminary_score"] > old["preliminary_score"]:
+                        if old_has_direct and not new_has_direct:
+                            j["apply_url"] = old["apply_url"]
+                        candidates[j["fingerprint"]] = j
+                    elif new_has_direct and not old_has_direct:
+                        old["apply_url"] = j["apply_url"]
                 else:
                     candidates[j["fingerprint"]] = j
         except Exception as exc:
@@ -1007,7 +1124,10 @@ def run() -> None:
     eligible_jobs: List[Dict[str, Any]] = []
     for j in sorted(candidates.values(), key=lambda x: (-x["preliminary_score"], x["search_priority"])):
         is_eligible = eligible(j, cfg, stats)
-        was_previously_failed = j["job_id"] in previously_failed_ids
+        was_previously_failed = (
+            j["job_id"] in previously_failed_ids
+            or (company_name(j["company"]), job_title(j["title"])) in previously_failed_title_company
+        )
         save_job(j)
         if is_eligible:
             if cfg.get("skip_already_analyzed", True) and already_analyzed(j["job_id"]):
@@ -1025,22 +1145,32 @@ def run() -> None:
     stats.eligible = len(eligible_jobs)
     print(f"Eligible unique jobs: {len(eligible_jobs)} (skipped {stats.cached_skipped} already analyzed, "
           f"{stats.previously_failed_skipped} previously failed)")
-    size = int(cfg["batch_size"])
-    try:
-        for start in range(0, len(eligible_jobs), size):
-            process_batch(eligible_jobs[start:start + size], cfg, stats)
-            if start + size < len(eligible_jobs): time.sleep(int(cfg["batch_delay_seconds"]))
-    except PipelineHalted as exc:
-        reason = "rate limit" if isinstance(exc, RateLimited) else "repeated failures"
-        stats.errors.append(f"Run stopped early ({reason}): {exc}")
-        print(f"\nRun stopped early due to {reason}. {stats.sent} job(s) sent "
-              f"successfully before the stop. Fix the underlying issue, then re-run "
-              f"job_fetcher.py -- nothing sent so far is lost, and nothing left unsent "
-              f"will be skipped as a duplicate.")
+
+    if not cfg.get("use_n8n", False):
+        # Claude-based analysis mode: jobs stay at status='discovered'.
+        # analyze_jobs.py picks them up and does scoring/tailoring/cover letters.
+        print(f"{len(eligible_jobs)} job(s) saved to DB — run `python analyze_jobs.py` to score and tailor with Claude.")
         notify_mac(
-            f"Job fetcher: stopped ({reason})",
-            f"Sent {stats.sent}, then stopped. Fix the issue and re-run -- nothing is lost."
+            "Job fetcher: scrape done",
+            f"{len(eligible_jobs)} new job(s) ready — run analyze_jobs.py to analyze."
         )
+    else:
+        size = int(cfg["batch_size"])
+        try:
+            for start in range(0, len(eligible_jobs), size):
+                process_batch(eligible_jobs[start:start + size], cfg, stats)
+                if start + size < len(eligible_jobs): time.sleep(int(cfg["batch_delay_seconds"]))
+        except PipelineHalted as exc:
+            reason = "rate limit" if isinstance(exc, RateLimited) else "repeated failures"
+            stats.errors.append(f"Run stopped early ({reason}): {exc}")
+            print(f"\nRun stopped early due to {reason}. {stats.sent} job(s) sent "
+                  f"successfully before the stop. Fix the underlying issue, then re-run "
+                  f"job_fetcher.py -- nothing sent so far is lost, and nothing left unsent "
+                  f"will be skipped as a duplicate.")
+            notify_mac(
+                f"Job fetcher: stopped ({reason})",
+                f"Sent {stats.sent}, then stopped. Fix the issue and re-run -- nothing is lost."
+            )
 
     save_stats(stats, cfg)
     print(json.dumps(asdict(stats), indent=2))
@@ -1059,4 +1189,12 @@ def run() -> None:
 
 
 if __name__ == "__main__":
-    run()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--hours-old", type=int, default=None,
+                        help="Temporary scrape lookback in hours; does not change the saved schedule config")
+    args = parser.parse_args()
+    if args.hours_old is not None and args.hours_old < 1:
+        parser.error("--hours-old must be at least 1")
+    run(hours_old_override=args.hours_old)

@@ -1,0 +1,35 @@
+[
+  {
+    "job_id": "MOCK_LI_GREENHOUSE_001",
+    "title": "Business Intelligence Analyst",
+    "company": "Northstar Analytics (fictional)",
+    "location": "Ellicott City, MD",
+    "source": "linkedin",
+    "listing_url": "MOCK_ONLY:https://www.linkedin.com/jobs/view/1000000001/",
+    "apply_url": "MOCK_ONLY:https://boards.greenhouse.io/northstaranalytics-example/jobs/10001",
+    "ats": "greenhouse",
+    "mock_case": "LinkedIn listing exposes an external Greenhouse application URL"
+  },
+  {
+    "job_id": "MOCK_LI_WORKDAY_002",
+    "title": "Data Operations Analyst",
+    "company": "Cedar Peak Systems (fictional)",
+    "location": "Remote, United States",
+    "source": "linkedin",
+    "listing_url": "MOCK_ONLY:https://www.linkedin.com/jobs/view/1000000002/",
+    "apply_url": "MOCK_ONLY:https://cedarpeak-example.wd5.myworkdayjobs.com/en-US/Careers/job/Data-Operations-Analyst_R10002",
+    "ats": "workday",
+    "mock_case": "LinkedIn listing exposes a Workday URL with multiple application steps"
+  },
+  {
+    "job_id": "MOCK_LI_NO_DIRECT_003",
+    "title": "Applied AI Solutions Engineer",
+    "company": "Harborlight Labs (fictional)",
+    "location": "Baltimore, MD",
+    "source": "linkedin",
+    "listing_url": "MOCK_ONLY:https://www.linkedin.com/jobs/view/1000000003/",
+    "apply_url": null,
+    "ats": null,
+    "mock_case": "LinkedIn listing has no captured employer application URL"
+  }
+]

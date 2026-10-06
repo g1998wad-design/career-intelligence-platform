@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f6f8" />
+    <title>Job matches</title>
+    <style>
+      :root { color-scheme: light; --ink:#17212b; --muted:#667481; --line:#e1e6ea; --paper:#fff; --bg:#f4f6f8; --blue:#2454d6; --green:#087f5b; }
+      * { box-sizing:border-box }
+      body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif }
+      header { background:var(--paper); border-bottom:1px solid var(--line); padding:22px max(18px,calc((100% - 920px)/2)) 18px }
+      header h1 { margin:0; font-size:24px; letter-spacing:-.03em }
+      header p { margin:5px 0 0; color:var(--muted); font-size:14px }
+      main { max-width:920px; margin:0 auto; padding:18px 14px 40px }
+      .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:14px }
+      .toolbar select,.toolbar button { border:1px solid var(--line); border-radius:10px; background:var(--paper); color:var(--ink); min-height:44px; padding:0 12px; font:inherit }
+      .toolbar button { background:var(--blue); border-color:var(--blue); color:#fff; font-weight:650; cursor:pointer }
+      #count { color:var(--muted); font-size:13px; margin-left:auto }
+      #jobs { display:grid; gap:12px }
+      .card { background:var(--paper); border:1px solid var(--line); border-radius:15px; padding:16px; box-shadow:0 1px 2px #17212b08 }
+      .top { display:flex; align-items:flex-start; gap:12px }
+      .score { min-width:48px; height:42px; display:grid; place-items:center; border-radius:12px; background:#e9f7f1; color:var(--green); font-size:17px; font-weight:750 }
+      .heading { flex:1; min-width:0 }
+      .heading h2 { margin:0; font-size:18px; line-height:1.25 }
+      .company { margin-top:4px; color:#344454; font-weight:550 }
+      .meta { margin-top:6px; color:var(--muted); font-size:13px }
+      .pitch { margin:14px 0; color:#374553; font-size:14px }
+      .pills { display:flex; gap:6px; flex-wrap:wrap; margin:0 0 14px }
+      .pill { padding:4px 9px; border-radius:999px; background:#f0f3f6; color:#52616e; font-size:12px }
+      .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px }
+      .actions a { display:flex; justify-content:center; align-items:center; min-height:44px; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:var(--ink); font-size:14px; font-weight:620 }
+      .actions a.primary { background:var(--blue); color:#fff; border-color:var(--blue) }
+      .actions button { min-height:44px; border:1px solid var(--blue); border-radius:10px; padding:0 12px; background:var(--blue); color:#fff; font:inherit; font-size:14px; font-weight:650; cursor:pointer }
+      .actions button:disabled { opacity:.62; cursor:wait }
+      .reference-box { margin:0 0 18px; background:var(--paper); border:1px solid var(--line); border-radius:15px; padding:16px }
+      .reference-box h2 { margin:0 0 5px; font-size:18px }
+      .reference-box p { margin:0 0 12px; color:var(--muted); font-size:13px }
+      .reference-form { display:grid; gap:9px }
+      .reference-form input { width:100%; min-height:44px; padding:9px 11px; border:1px solid var(--line); border-radius:9px; font:inherit }
+      .reference-form button,.reference-actions button { min-height:42px; border:1px solid var(--blue); border-radius:9px; padding:0 12px; background:var(--blue); color:#fff; font:inherit; font-weight:650; cursor:pointer }
+      .reference-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px }
+      .reference-actions a { display:flex; align-items:center; min-height:40px; padding:0 10px; border:1px solid var(--line); border-radius:9px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:600 }
+      .reference-card { border-top:1px solid var(--line); margin-top:12px; padding-top:12px }
+      .reference-status { margin-top:4px; color:var(--muted); font-size:13px }
+      .empty,.error { padding:32px 18px; text-align:center; background:var(--paper); border:1px solid var(--line); border-radius:15px; color:var(--muted) }
+      .hint { margin:14px 4px; color:var(--muted); font-size:12px }
+      @media (min-width:700px) { main { padding-top:24px } .card { padding:20px } .actions { display:flex; justify-content:flex-end } .actions a { min-width:132px; padding:0 12px } }
+    </style>
+  </head>
+  <body>
+    <header><h1>Job matches</h1><p>Prepare applications on your Mac, review them here, and approve eligible submissions from your phone.</p></header>
+    <main>
+      <section class="reference-box">
+        <h2>Match a LinkedIn job</h2>
+        <p>Copy the link yourself, then enter the job details. We do not visit LinkedIn; the worker searches Indeed and Google Jobs for the same role.</p>
+        <form id="reference-form" class="reference-form">
+          <input name="url" type="url" placeholder="LinkedIn job URL" required />
+          <input name="title" type="text" placeholder="Job title" required />
+          <input name="company" type="text" placeholder="Company" required />
+          <input name="location" type="text" placeholder="Location (optional)" />
+          <button type="submit">Search other sources</button>
+        </form>
+        <div id="references" aria-live="polite"></div>
+      </section>
+      <div class="toolbar">
+        <label for="score">Minimum score</label>
+        <select id="score"><option value="70">70+</option><option value="75">75+</option><option value="80">80+</option><option value="85">85+</option><option value="90">90+</option></select>
+        <button id="refresh" type="button">Refresh</button>
+        <span id="count" aria-live="polite"></span>
+      </div>
+      <section id="applications" aria-live="polite"></section>
+      <section id="jobs" aria-live="polite"><div class="empty">Loading job matches…</div></section>
+      <p class="hint">Applications open on your Mac. The worker never submits until you approve here. Workday advances through steps only when detected fields are filled; unresolved questions remain manual.</p>
+    </main>
+    <script>
+      const jobsEl = document.getElementById("jobs");
+      const applicationsEl = document.getElementById("applications");
+      const countEl = document.getElementById("count");
+      const scoreEl = document.getElementById("score");
+      const referencesEl = document.getElementById("references");
+      const escapeHtml = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+      const safeUrl = (value) => { try { const u = new URL(value, location.origin); return ["https:","http:"].includes(u.protocol) ? escapeHtml(u.href) : "#"; } catch { return "#"; } };
+      function card(job) {
+        const tags = [...(job.tech_stack || []).slice(0, 4), ...(job.missing_skills || []).slice(0, 2).map(x => `Gap: ${x}`)];
+        const apply = job.apply_url || job.url;
+        const status = job.preparation_status;
+        const isPrepared = job.has_resume || status === "prepared";
+        const isPending = ["pending", "processing"].includes(status);
+        const prepareControl = isPrepared
+          ? '<span class="pill">Resume prepared</span>'
+          : isPending
+            ? `<button type="button" disabled>${status === "processing" ? "Preparing…" : "Queued for preparation"}</button>`
+            : `<button type="button" data-prepare="${escapeHtml(job.job_id)}">Prepare resume</button>`;
+        const applicationControl = isPrepared
+          ? (job.direct_apply_available
+              ? `<button type="button" data-application="${escapeHtml(job.job_id)}">Prepare application</button>`
+              : '<span class="pill">Employer link unavailable</span>')
+          : '';
+        return `<article class="card">
+          <div class="top"><div class="score">${escapeHtml(job.match_score)}</div><div class="heading"><h2>${escapeHtml(job.title)}</h2><div class="company">${escapeHtml(job.company)}</div><div class="meta">${escapeHtml(job.location || "Location not listed")}${job.date_posted ? ` · Posted ${escapeHtml(job.date_posted)}` : ""}${job.applicant_count != null ? ` · ${escapeHtml(job.applicant_count)} applicants` : ""}${job.source ? ` · Source: ${escapeHtml(job.source)}` : ""}</div></div></div>
+          <p class="pitch">${escapeHtml(job.pitch || "No fit summary available.")}</p>
+          ${tags.length ? `<div class="pills">${tags.map(t => `<span class="pill">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+          <div class="actions">${prepareControl}${applicationControl}${isPrepared ? `<a href="/api/jobs/${encodeURIComponent(job.job_id)}/resume.pdf" target="_blank" rel="noopener">Resume PDF</a>${job.has_cover_letter ? `<a href="/api/jobs/${encodeURIComponent(job.job_id)}/cover-letter.pdf" target="_blank" rel="noopener">Cover letter</a>` : ""}` : ""}<a href="${safeUrl(job.url)}" target="_blank" rel="noopener">View posting</a><a class="primary" href="${safeUrl(apply)}" target="_blank" rel="noopener">${job.direct_apply_available ? "Apply on employer site" : "Open listing to apply"}</a></div>
+        </article>`;
+      }
+      const applicationStatus = {
+        pending:"Queued on your Mac", preparing:"Opening and filling the application…",
+        awaiting_approval:"Ready for your review", approved:"Approval received; submitting…",
+        submitted:"Submitted and confirmed", submission_check:"Submit was attempted; check the employer page",
+        needs_review:"Needs manual review on your Mac", failed:"Could not prepare application",
+        cancelled:"Cancelled"
+      };
+      async function loadApplications() {
+        try {
+          const response = await fetch("/api/applications", { cache:"no-store" });
+          if (!response.ok) throw new Error("Could not load application queue.");
+          const payload = await response.json();
+          applicationsEl.innerHTML = payload.applications.length
+            ? `<div class="reference-box"><h2>Application queue</h2>${payload.applications.map(app => {
+                const report = app.report || {};
+                const notes = [...(report.needs_review_fields || []), ...(report.unmatched_fields || [])];
+                const canApprove = app.can_approve;
+                return `<article class="reference-card"><strong>${escapeHtml(app.company)} · ${escapeHtml(app.title)}</strong><div class="reference-status">${escapeHtml(applicationStatus[app.status] || app.status)}${report.ats ? ` · ${escapeHtml(report.ats)}` : ""}${app.last_error ? ` · ${escapeHtml(app.last_error)}` : ""}</div>${report.filled_fields?.length ? `<div class="reference-status">Filled: ${escapeHtml(report.filled_fields.join("; "))}</div>` : ""}${notes.length ? `<div class="reference-status">Review required: ${escapeHtml(notes.join("; "))}</div>` : ""}${report.screenshot ? `<div class="reference-actions"><a href="/api/applications/${encodeURIComponent(app.request_id)}/screenshot" target="_blank" rel="noopener">View application screenshot</a></div>` : ""}<div class="reference-actions">${canApprove ? `<button type="button" data-approve="${escapeHtml(app.request_id)}">Approve &amp; submit</button>` : ""}${["pending","awaiting_approval"].includes(app.status) ? `<button type="button" data-cancel="${escapeHtml(app.request_id)}">Cancel</button>` : ""}</div></article>`;
+              }).join("")}</div>` : "";
+        } catch (error) {
+          applicationsEl.innerHTML = `<div class="reference-status">${escapeHtml(error.message || "Could not load application queue.")}</div>`;
+        }
+      }
+      async function loadJobs() {
+        jobsEl.innerHTML = '<div class="empty">Loading job matches…</div>';
+        try {
+          const response = await fetch(`/api/jobs?min_score=${encodeURIComponent(scoreEl.value)}`, { cache:"no-store" });
+          if (!response.ok) throw new Error(response.status === 401 ? "Sign in to view your private job list." : `Could not load jobs (${response.status}).`);
+          const payload = await response.json();
+          countEl.textContent = `${payload.count} shown`;
+          jobsEl.innerHTML = payload.jobs.length ? payload.jobs.map(card).join("") : '<div class="empty">No job matches at this score yet. Check back after the next pipeline run.</div>';
+        } catch (error) {
+          countEl.textContent = "";
+          jobsEl.innerHTML = `<div class="error">${escapeHtml(error.message || "Could not load jobs.")}</div>`;
+        }
+      }
+      const referenceStatus = {
+        pending:"Queued for search", searching:"Searching non-LinkedIn sources…",
+        matched:"Direct employer/ATS link found", matched_listing:"Matching listing found; no direct application link",
+        not_found:"No matching external posting found", failed:"Search failed; try again later"
+      };
+      async function loadReferences() {
+        try {
+          const response = await fetch("/api/linkedin-references", { cache:"no-store" });
+          if (!response.ok) throw new Error("Could not load LinkedIn references.");
+          const payload = await response.json();
+          referencesEl.innerHTML = payload.references.map(ref => {
+            const status = referenceStatus[ref.status] || escapeHtml(ref.status);
+            const matchedLink = ref.direct_apply_url || ref.matched_apply_url || ref.matched_url;
+            const linkLabel = ref.direct_apply_url ? "Open employer application" : "Open external match";
+            return `<article class="reference-card"><strong>${escapeHtml(ref.title)} · ${escapeHtml(ref.company)}</strong><div class="reference-status">${status}${ref.matched_source ? ` · Found on ${escapeHtml(ref.matched_source)}` : ""}${ref.last_error ? ` · ${escapeHtml(ref.last_error)}` : ""}</div><div class="reference-actions"><a href="${safeUrl(ref.url)}" target="_blank" rel="noopener">Original LinkedIn link</a>${matchedLink ? `<a href="${safeUrl(matchedLink)}" target="_blank" rel="noopener">${linkLabel}</a>` : ""}${ref.matched_job_id ? `<button type="button" data-prepare="${escapeHtml(ref.matched_job_id)}">Prepare resume</button>` : ""}</div></article>`;
+          }).join("");
+        } catch (error) {
+          referencesEl.innerHTML = `<div class="reference-status">${escapeHtml(error.message || "Could not load references.")}</div>`;
+        }
+      }
+      async function queueJob(jobId, button) {
+        button.disabled = true;
+        button.textContent = "Queuing…";
+        try {
+          const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/select`, { method:"POST" });
+          if (!response.ok) throw new Error(`Could not queue this job (${response.status}).`);
+          await Promise.all([loadJobs(), loadReferences(), loadApplications()]);
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "Prepare resume";
+          alert(error.message || "Could not queue this job.");
+        }
+      }
+      async function queueApplication(jobId, button) {
+        button.disabled = true;
+        button.textContent = "Queuing…";
+        try {
+          const response = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/application`, { method:"POST" });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.detail || `Could not queue application (${response.status}).`);
+          await loadApplications();
+        } catch (error) {
+          alert(error.message || "Could not queue application.");
+          button.disabled = false;
+          button.textContent = "Prepare application";
+        }
+      }
+      async function applicationAction(requestId, action) {
+        if (action === "approve" && !confirm("Submit this application to the employer now?")) return;
+        const response = await fetch(`/api/applications/${encodeURIComponent(requestId)}/${action}`, { method:"POST" });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `Could not ${action} application.`);
+        await loadApplications();
+      }
+      document.getElementById("reference-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const submit = form.querySelector("button[type=submit]");
+        submit.disabled = true;
+        submit.textContent = "Adding…";
+        const values = Object.fromEntries(new FormData(form).entries());
+        try {
+          const response = await fetch("/api/linkedin-references", {
+            method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(values)
+          });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.detail || `Could not add link (${response.status}).`);
+          form.reset();
+          await loadReferences();
+        } catch (error) {
+          alert(error.message || "Could not add this LinkedIn link.");
+        } finally {
+          submit.disabled = false;
+          submit.textContent = "Search other sources";
+        }
+      });
+      document.getElementById("refresh").addEventListener("click", loadJobs);
+      jobsEl.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-prepare]");
+        if (button) { await queueJob(button.dataset.prepare, button); return; }
+        const appButton = event.target.closest("button[data-application]");
+        if (appButton) await queueApplication(appButton.dataset.application, appButton);
+      });
+      applicationsEl.addEventListener("click", async (event) => {
+        const approve = event.target.closest("button[data-approve]");
+        const cancel = event.target.closest("button[data-cancel]");
+        try {
+          if (approve) await applicationAction(approve.dataset.approve, "approve");
+          if (cancel) await applicationAction(cancel.dataset.cancel, "cancel");
+        } catch (error) { alert(error.message || "Application action failed."); }
+      });
+      referencesEl.addEventListener("click", async (event) => {
+        const button = event.target.closest("button[data-prepare]");
+        if (button) await queueJob(button.dataset.prepare, button);
+      });
+      scoreEl.addEventListener("change", loadJobs);
+      loadJobs();
+      loadReferences();
+      loadApplications();
+      setInterval(() => { loadJobs(); loadReferences(); loadApplications(); }, 10000);
+    </script>
+  </body>
+</html>
