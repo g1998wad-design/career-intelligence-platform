@@ -19,7 +19,12 @@ batch_run_log.json
 selected_batch.json
 startup_outreach_list.json
 master_resume.json
+master_resume.json.bak*
 master_resume.pdf
 
 # Real personal contact info -- use autofill_profile.example.json instead
 autofill_profile.json
+
+# Generated resume/cover-letter PDFs contain real name/phone/email/address and
+# reveal the full list of targeted companies -- this repo is public.
+resume-site/public/pdfs/

@@ -1,0 +1,3 @@
+[mcp_servers.job-pipeline]
+command = "python3"
+args = ["/Users/gurkiratsingh/JS_BASICS/job_pipeline_mcp.py"]
