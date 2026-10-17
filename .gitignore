@@ -28,3 +28,7 @@ autofill_profile.json
 # Generated resume/cover-letter PDFs contain real name/phone/email/address and
 # reveal the full list of targeted companies -- this repo is public.
 resume-site/public/pdfs/
+
+# career_fit_agent runtime output (run traces, usage log) -- curated examples
+# are committed separately under career_fit_agent/sample_runs/
+logs/

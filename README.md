@@ -50,3 +50,16 @@ Requires a running n8n instance with a webhook workflow wired to a Gemini API ke
 ## Status
 
 Actively maintained and used by real job seekers day-to-day. Not packaged as a hosted product — this is a real, working pipeline run locally.
+
+## Career Fit Explainer (Open Agent Hackathon 2026)
+
+`career_fit_agent/` is a separate multi-agent system built on top of this
+repo's job data: given one job/resume pair, a Planner → research agents
+(job requirements, resume match, company signal, market context) →
+Evaluator → Risk agent → Planner loop produces an evidence-cited
+apply/skip recommendation, federating fragmented data sources through
+Zetaris and metering every agent step through Meterless. See
+[`career_fit_agent/README.md`](career_fit_agent/README.md) for the
+architecture, sponsor-tech integration, and how to run it (`python3 -m
+career_fit_agent.cli --job-id MOCK_LI_GREENHOUSE_001`, no API keys
+required).

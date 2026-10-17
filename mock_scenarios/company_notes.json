@@ -1,0 +1,23 @@
+{
+  "_note": "Fictional company-signal snippets (standing in for Glassdoor/news/filings sources). Deliberately sparse for one company to show the agent admitting a fragmented-data gap instead of fabricating a signal.",
+  "companies": [
+    {
+      "company": "Northstar Analytics (fictional)",
+      "source": "review_aggregator",
+      "snippet": "Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews.",
+      "published_days_ago": 95
+    },
+    {
+      "company": "Northstar Analytics (fictional)",
+      "source": "news",
+      "snippet": "Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds.",
+      "published_days_ago": 240
+    },
+    {
+      "company": "Cedar Peak Systems (fictional)",
+      "source": "review_aggregator",
+      "snippet": "Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer.",
+      "published_days_ago": 60
+    }
+  ]
+}

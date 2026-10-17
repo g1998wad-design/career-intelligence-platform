@@ -1,0 +1,341 @@
+{
+  "run_id": "fe137986014c",
+  "job_id": "MOCK_LI_WORKDAY_002",
+  "verdict": "apply_with_caveats",
+  "confidence": 0.85,
+  "narrative": "Recommendation: apply with caveats. Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker. Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none. [review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer. Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band. Risk (low): Candidate is 1 year short of the stated requirement. Mitigation: Minor; worth a one-line note in the cover letter. Risk (info): Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question. Mitigation: Must be answered by the candidate personally, never auto-filled or auto-answered.",
+  "reasons": [
+    {
+      "claim": "Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker.",
+      "citations": [
+        {
+          "source": "jobs",
+          "locator": "MOCK_LI_WORKDAY_002",
+          "snippet": "Data Operations Analyst"
+        },
+        {
+          "source": "job_requirements_detail",
+          "locator": "MOCK_LI_WORKDAY_002",
+          "snippet": "5+ years of experience in data operations. Airflow and Looker required; Snowflake experience preferred. Must be authorized to work in the US without current or future sponsorship."
+        }
+      ]
+    },
+    {
+      "claim": "Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none.",
+      "citations": [
+        {
+          "source": "resume_skills",
+          "locator": "sample_master_resume.json",
+          "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+        }
+      ]
+    },
+    {
+      "claim": "[review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer.",
+      "citations": [
+        {
+          "source": "company_notes",
+          "locator": "Cedar Peak Systems (fictional)/review_aggregator",
+          "snippet": "Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer."
+        }
+      ]
+    },
+    {
+      "claim": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band.",
+      "citations": [
+        {
+          "source": "market_salary",
+          "locator": "data operations analyst",
+          "snippet": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band."
+        }
+      ]
+    }
+  ],
+  "missing_skills": [],
+  "risk_notes": [
+    {
+      "severity": "low",
+      "message": "Candidate is 1 year short of the stated requirement.",
+      "mitigation": "Minor; worth a one-line note in the cover letter."
+    },
+    {
+      "severity": "info",
+      "message": "Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question.",
+      "mitigation": "Must be answered by the candidate personally, never auto-filled or auto-answered."
+    }
+  ],
+  "trace": [
+    {
+      "t": 1792274680.978,
+      "step": "planner.initial_plan",
+      "plan": [
+        "job_requirements",
+        "resume_match",
+        "company_signal",
+        "market_context"
+      ]
+    },
+    {
+      "t": 1792274680.978,
+      "step": "job_requirements",
+      "finding": {
+        "agent": "job_requirements",
+        "summary": "Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker.",
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "source": "jobs",
+            "locator": "MOCK_LI_WORKDAY_002",
+            "snippet": "Data Operations Analyst"
+          },
+          {
+            "source": "job_requirements_detail",
+            "locator": "MOCK_LI_WORKDAY_002",
+            "snippet": "5+ years of experience in data operations. Airflow and Looker required; Snowflake experience preferred. Must be authorized to work in the US without current or future sponsorship."
+          }
+        ],
+        "details": {
+          "required_years": 5,
+          "years_source": "explicit_pattern",
+          "required_skills": [
+            "Airflow",
+            "Looker"
+          ],
+          "sponsorship_flag": true,
+          "title": "Data Operations Analyst",
+          "company": "Cedar Peak Systems (fictional)",
+          "location": "Remote, United States"
+        }
+      }
+    },
+    {
+      "t": 1792274680.978,
+      "step": "resume_match",
+      "finding": {
+        "agent": "resume_match",
+        "summary": "Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none.",
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "source": "resume_skills",
+            "locator": "sample_master_resume.json",
+            "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+          }
+        ],
+        "details": {
+          "candidate_years": 4,
+          "gap_years": 1,
+          "overlap_skills": [
+            "Airflow",
+            "Looker"
+          ],
+          "missing_skills": [],
+          "overlap_ratio": 1.0
+        }
+      }
+    },
+    {
+      "t": 1792274680.978,
+      "step": "company_signal.attempt_1",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "No independent signal for Cedar Peak Systems (fictional) within 30 days",
+        "confidence": 0.35,
+        "evidence": [],
+        "details": {
+          "max_age_days": 30,
+          "found": false
+        }
+      }
+    },
+    {
+      "t": 1792274680.979,
+      "step": "evaluator.retry",
+      "reason": "confidence below threshold on first pass -- broadening lookback window",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "[review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer.",
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "source": "company_notes",
+            "locator": "Cedar Peak Systems (fictional)/review_aggregator",
+            "snippet": "Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer."
+          }
+        ],
+        "details": {
+          "max_age_days": 365,
+          "found": true,
+          "num_sources": 1
+        }
+      }
+    },
+    {
+      "t": 1792274680.979,
+      "step": "market_context",
+      "finding": {
+        "agent": "market_context",
+        "summary": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band.",
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "source": "market_salary",
+            "locator": "data operations analyst",
+            "snippet": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band."
+          }
+        ],
+        "details": {
+          "band": {
+            "title_family": "data operations analyst",
+            "location_tier": "national_remote",
+            "low": 68000,
+            "mid": 82000,
+            "high": 98000
+          },
+          "target_salary": 95000,
+          "position_vs_band": "within band"
+        }
+      }
+    },
+    {
+      "t": 1792274680.979,
+      "step": "risk_agent.review",
+      "risk_notes": [
+        {
+          "severity": "low",
+          "message": "Candidate is 1 year short of the stated requirement.",
+          "mitigation": "Minor; worth a one-line note in the cover letter."
+        },
+        {
+          "severity": "info",
+          "message": "Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question.",
+          "mitigation": "Must be answered by the candidate personally, never auto-filled or auto-answered."
+        }
+      ]
+    },
+    {
+      "t": 1792274680.979,
+      "step": "planner.refine",
+      "explainer_instructions": []
+    },
+    {
+      "t": 1792274680.979,
+      "step": "explainer",
+      "result": {
+        "verdict": "apply_with_caveats",
+        "confidence": 0.85,
+        "narrative": "Recommendation: apply with caveats. Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker. Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none. [review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer. Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band. Risk (low): Candidate is 1 year short of the stated requirement. Mitigation: Minor; worth a one-line note in the cover letter. Risk (info): Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question. Mitigation: Must be answered by the candidate personally, never auto-filled or auto-answered.",
+        "reasons": [
+          {
+            "claim": "Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker.",
+            "citations": [
+              {
+                "source": "jobs",
+                "locator": "MOCK_LI_WORKDAY_002",
+                "snippet": "Data Operations Analyst"
+              },
+              {
+                "source": "job_requirements_detail",
+                "locator": "MOCK_LI_WORKDAY_002",
+                "snippet": "5+ years of experience in data operations. Airflow and Looker required; Snowflake experience preferred. Must be authorized to work in the US without current or future sponsorship."
+              }
+            ]
+          },
+          {
+            "claim": "Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none.",
+            "citations": [
+              {
+                "source": "resume_skills",
+                "locator": "sample_master_resume.json",
+                "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+              }
+            ]
+          },
+          {
+            "claim": "[review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer.",
+            "citations": [
+              {
+                "source": "company_notes",
+                "locator": "Cedar Peak Systems (fictional)/review_aggregator",
+                "snippet": "Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer."
+              }
+            ]
+          },
+          {
+            "claim": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band.",
+            "citations": [
+              {
+                "source": "market_salary",
+                "locator": "data operations analyst",
+                "snippet": "Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band."
+              }
+            ]
+          }
+        ],
+        "missing_skills": [],
+        "risk_notes": [
+          {
+            "severity": "low",
+            "message": "Candidate is 1 year short of the stated requirement.",
+            "mitigation": "Minor; worth a one-line note in the cover letter."
+          },
+          {
+            "severity": "info",
+            "message": "Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question.",
+            "mitigation": "Must be answered by the candidate personally, never auto-filled or auto-answered."
+          }
+        ],
+        "planner_refinements": []
+      }
+    }
+  ],
+  "meterless_summary": {
+    "run_id": "fe137986014c",
+    "total_calls": 6,
+    "total_duration_ms": 0.45,
+    "by_agent": {
+      "job_requirements": {
+        "calls": 1,
+        "duration_ms": 0.17918100002134452,
+        "units": 847
+      },
+      "resume_match": {
+        "calls": 1,
+        "duration_ms": 0.1423480000539712,
+        "units": 547
+      },
+      "company_signal": {
+        "calls": 1,
+        "duration_ms": 0.043545000039557635,
+        "units": 263
+      },
+      "company_signal_retry": {
+        "calls": 1,
+        "duration_ms": 0.022127000079308345,
+        "units": 617
+      },
+      "market_context": {
+        "calls": 1,
+        "duration_ms": 0.039898000068205874,
+        "units": 667
+      },
+      "explainer": {
+        "calls": 1,
+        "duration_ms": 0.02097200001571764,
+        "units": 3121
+      }
+    },
+    "metering_mode": "local_only"
+  },
+  "zetaris_status": {
+    "mode": "local_federation",
+    "endpoint": null,
+    "sources": [
+      "jobs (jobs.json)",
+      "job_requirements_detail (job_requirements_detail.json)",
+      "company_notes (company_notes.json)",
+      "market_salary (market_salary.json)",
+      "resume (sample_master_resume.json)"
+    ]
+  }
+}

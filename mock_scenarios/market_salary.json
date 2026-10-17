@@ -1,0 +1,9 @@
+{
+  "_note": "Fictional market salary bands (standing in for a market-data feed), keyed by a coarse title_family and location_tier.",
+  "bands": [
+    {"title_family": "business intelligence analyst", "location_tier": "national_remote", "low": 72000, "mid": 88000, "high": 105000},
+    {"title_family": "data operations analyst", "location_tier": "national_remote", "low": 68000, "mid": 82000, "high": 98000},
+    {"title_family": "applied ai solutions engineer", "location_tier": "national_remote", "low": 110000, "mid": 135000, "high": 165000},
+    {"title_family": "data analyst", "location_tier": "national_remote", "low": 70000, "mid": 85000, "high": 100000}
+  ]
+}
