@@ -1,0 +1,36 @@
+{
+  "_note": "Fictional sample profile for the Career Fit Explainer agent demo. Shape mirrors master_resume.json (see generate_resumes.py) plus a few extra fields (years_experience, current_title, target_salary, location_pref) the explainer agent reads directly.",
+  "full_name": "Jordan Ellis",
+  "current_title": "Data Analyst",
+  "years_experience": 4,
+  "location_pref": "Remote, United States",
+  "target_salary": 95000,
+  "summary_variants": {
+    "default": "Data analyst with 4 years turning messy operational data into decisions, across SQL, Python, and BI tooling."
+  },
+  "skills_keyword_bank": {
+    "core": ["SQL", "Python", "Pandas", "Tableau", "A/B testing", "ETL"],
+    "secondary": ["dbt", "Airflow", "Looker", "Excel/Sheets"]
+  },
+  "experience": [
+    {
+      "company": "Lighthouse Retail Co",
+      "title": "Data Analyst",
+      "years": 2.5,
+      "bullets": [
+        {"text": "Built weekly SQL/Tableau dashboards tracking inventory turnover across 40 stores, cutting manual reporting time by 10 hours/week."},
+        {"text": "Owned ETL jobs (Airflow + dbt) feeding the merchandising warehouse; reduced pipeline failures 30% by adding data-quality checks."},
+        {"text": "Ran and analyzed 6 pricing A/B tests in Python/Pandas, informing a markdown strategy that lifted margin 2 points."}
+      ]
+    },
+    {
+      "company": "Harbor Analytics Co-op",
+      "title": "Junior Data Analyst",
+      "years": 1.5,
+      "bullets": [
+        {"text": "Maintained Looker dashboards for a 12-person ops team; wrote SQL extracts against a Postgres warehouse."},
+        {"text": "Automated a manual Excel reconciliation process with a Python script, saving ~5 hours/week."}
+      ]
+    }
+  ]
+}

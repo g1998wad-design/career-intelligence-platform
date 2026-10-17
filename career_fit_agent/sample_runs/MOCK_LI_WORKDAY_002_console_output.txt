@@ -1,0 +1,25 @@
+
+=== Career Fit Explainer -- MOCK_LI_WORKDAY_002 (run fe137986014c) ===
+Verdict: apply_with_caveats  (confidence 0.85)
+
+Recommendation: apply with caveats. Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker. Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none. [review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer. Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band. Risk (low): Candidate is 1 year short of the stated requirement. Mitigation: Minor; worth a one-line note in the cover letter. Risk (info): Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question. Mitigation: Must be answered by the candidate personally, never auto-filled or auto-answered.
+
+Evidence:
+  - Data Operations Analyst at Cedar Peak Systems (fictional) requires 5 years and lists 2 required skill(s): Airflow, Looker.
+      [jobs: MOCK_LI_WORKDAY_002]
+      [job_requirements_detail: MOCK_LI_WORKDAY_002]
+  - Candidate has 4 years; role wants 5 (gap=1). Skill overlap 2/2: matches ['Airflow', 'Looker'], missing none.
+      [resume_skills: sample_master_resume.json]
+  - [review_aggregator] Reviews are mixed: praise for remote flexibility, repeated complaints about a slow, multi-step Workday hiring process and long time-to-offer.
+      [company_notes: Cedar Peak Systems (fictional)/review_aggregator]
+  - Market band for Data Operations Analyst (Remote, United States): $68,000-$98,000 (mid $82,000). Candidate target $95,000 is within band.
+      [market_salary: data operations analyst]
+
+Risk notes:
+  - (low) Candidate is 1 year short of the stated requirement. -> Minor; worth a one-line note in the cover letter.
+  - (info) Posting mentions work-authorization/sponsorship/clearance -- this is a legal/EEO question. -> Must be answered by the candidate personally, never auto-filled or auto-answered.
+
+Zetaris: {'mode': 'local_federation', 'endpoint': None, 'sources': ['jobs (jobs.json)', 'job_requirements_detail (job_requirements_detail.json)', 'company_notes (company_notes.json)', 'market_salary (market_salary.json)', 'resume (sample_master_resume.json)']}
+Meterless: {'run_id': 'fe137986014c', 'total_calls': 6, 'total_duration_ms': 0.45, 'by_agent': {'job_requirements': {'calls': 1, 'duration_ms': 0.17918100002134452, 'units': 847}, 'resume_match': {'calls': 1, 'duration_ms': 0.1423480000539712, 'units': 547}, 'company_signal': {'calls': 1, 'duration_ms': 0.043545000039557635, 'units': 263}, 'company_signal_retry': {'calls': 1, 'duration_ms': 0.022127000079308345, 'units': 617}, 'market_context': {'calls': 1, 'duration_ms': 0.039898000068205874, 'units': 667}, 'explainer': {'calls': 1, 'duration_ms': 0.02097200001571764, 'units': 3121}}, 'metering_mode': 'local_only'}
+
+Full trace written to career_fit_agent/sample_runs/MOCK_LI_WORKDAY_002_fe137986014c.json

@@ -1,0 +1,327 @@
+{
+  "run_id": "be742e2ef1d8",
+  "job_id": "MOCK_LI_GREENHOUSE_001",
+  "verdict": "apply",
+  "confidence": 0.79,
+  "narrative": "Recommendation: apply. Business Intelligence Analyst at Northstar Analytics (fictional) requires 2 years and lists 4 required skill(s): SQL, Tableau, ETL, dbt. Candidate has 4 years; role wants 2 (gap=-2). Skill overlap 4/4: matches ['SQL', 'Tableau', 'ETL', 'dbt'], missing none. [review_aggregator] Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews. / [news] Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds. Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band.",
+  "reasons": [
+    {
+      "claim": "Business Intelligence Analyst at Northstar Analytics (fictional) requires 2 years and lists 4 required skill(s): SQL, Tableau, ETL, dbt.",
+      "citations": [
+        {
+          "source": "jobs",
+          "locator": "MOCK_LI_GREENHOUSE_001",
+          "snippet": "Business Intelligence Analyst"
+        },
+        {
+          "source": "job_requirements_detail",
+          "locator": "MOCK_LI_GREENHOUSE_001",
+          "snippet": "We're looking for an analyst with 2+ years of experience with SQL and Tableau. You'll own the ETL pipelines (dbt) feeding our executive dashboards and run ad-hoc analyses for the GTM team."
+        }
+      ]
+    },
+    {
+      "claim": "Candidate has 4 years; role wants 2 (gap=-2). Skill overlap 4/4: matches ['SQL', 'Tableau', 'ETL', 'dbt'], missing none.",
+      "citations": [
+        {
+          "source": "resume_skills",
+          "locator": "sample_master_resume.json",
+          "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+        }
+      ]
+    },
+    {
+      "claim": "[review_aggregator] Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews. / [news] Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds.",
+      "citations": [
+        {
+          "source": "company_notes",
+          "locator": "Northstar Analytics (fictional)/review_aggregator",
+          "snippet": "Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews."
+        },
+        {
+          "source": "company_notes",
+          "locator": "Northstar Analytics (fictional)/news",
+          "snippet": "Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds."
+        }
+      ]
+    },
+    {
+      "claim": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band.",
+      "citations": [
+        {
+          "source": "market_salary",
+          "locator": "business intelligence analyst",
+          "snippet": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band."
+        }
+      ]
+    }
+  ],
+  "missing_skills": [],
+  "risk_notes": [],
+  "trace": [
+    {
+      "t": 1792274680.824,
+      "step": "planner.initial_plan",
+      "plan": [
+        "job_requirements",
+        "resume_match",
+        "company_signal",
+        "market_context"
+      ]
+    },
+    {
+      "t": 1792274680.824,
+      "step": "job_requirements",
+      "finding": {
+        "agent": "job_requirements",
+        "summary": "Business Intelligence Analyst at Northstar Analytics (fictional) requires 2 years and lists 4 required skill(s): SQL, Tableau, ETL, dbt.",
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "source": "jobs",
+            "locator": "MOCK_LI_GREENHOUSE_001",
+            "snippet": "Business Intelligence Analyst"
+          },
+          {
+            "source": "job_requirements_detail",
+            "locator": "MOCK_LI_GREENHOUSE_001",
+            "snippet": "We're looking for an analyst with 2+ years of experience with SQL and Tableau. You'll own the ETL pipelines (dbt) feeding our executive dashboards and run ad-hoc analyses for the GTM team."
+          }
+        ],
+        "details": {
+          "required_years": 2,
+          "years_source": "explicit_pattern",
+          "required_skills": [
+            "SQL",
+            "Tableau",
+            "ETL",
+            "dbt"
+          ],
+          "sponsorship_flag": false,
+          "title": "Business Intelligence Analyst",
+          "company": "Northstar Analytics (fictional)",
+          "location": "Ellicott City, MD"
+        }
+      }
+    },
+    {
+      "t": 1792274680.824,
+      "step": "resume_match",
+      "finding": {
+        "agent": "resume_match",
+        "summary": "Candidate has 4 years; role wants 2 (gap=-2). Skill overlap 4/4: matches ['SQL', 'Tableau', 'ETL', 'dbt'], missing none.",
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "source": "resume_skills",
+            "locator": "sample_master_resume.json",
+            "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+          }
+        ],
+        "details": {
+          "candidate_years": 4,
+          "gap_years": -2,
+          "overlap_skills": [
+            "SQL",
+            "Tableau",
+            "ETL",
+            "dbt"
+          ],
+          "missing_skills": [],
+          "overlap_ratio": 1.0
+        }
+      }
+    },
+    {
+      "t": 1792274680.824,
+      "step": "company_signal.attempt_1",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "No independent signal for Northstar Analytics (fictional) within 30 days",
+        "confidence": 0.35,
+        "evidence": [],
+        "details": {
+          "max_age_days": 30,
+          "found": false
+        }
+      }
+    },
+    {
+      "t": 1792274680.824,
+      "step": "evaluator.retry",
+      "reason": "confidence below threshold on first pass -- broadening lookback window",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "[review_aggregator] Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews. / [news] Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds.",
+        "confidence": 0.8,
+        "evidence": [
+          {
+            "source": "company_notes",
+            "locator": "Northstar Analytics (fictional)/review_aggregator",
+            "snippet": "Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews."
+          },
+          {
+            "source": "company_notes",
+            "locator": "Northstar Analytics (fictional)/news",
+            "snippet": "Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds."
+          }
+        ],
+        "details": {
+          "max_age_days": 365,
+          "found": true,
+          "num_sources": 2
+        }
+      }
+    },
+    {
+      "t": 1792274680.824,
+      "step": "market_context",
+      "finding": {
+        "agent": "market_context",
+        "summary": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band.",
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "source": "market_salary",
+            "locator": "business intelligence analyst",
+            "snippet": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band."
+          }
+        ],
+        "details": {
+          "band": {
+            "title_family": "business intelligence analyst",
+            "location_tier": "national_remote",
+            "low": 72000,
+            "mid": 88000,
+            "high": 105000
+          },
+          "target_salary": 95000,
+          "position_vs_band": "within band"
+        }
+      }
+    },
+    {
+      "t": 1792274680.824,
+      "step": "risk_agent.review",
+      "risk_notes": []
+    },
+    {
+      "t": 1792274680.824,
+      "step": "planner.refine",
+      "explainer_instructions": []
+    },
+    {
+      "t": 1792274680.824,
+      "step": "explainer",
+      "result": {
+        "verdict": "apply",
+        "confidence": 0.79,
+        "narrative": "Recommendation: apply. Business Intelligence Analyst at Northstar Analytics (fictional) requires 2 years and lists 4 required skill(s): SQL, Tableau, ETL, dbt. Candidate has 4 years; role wants 2 (gap=-2). Skill overlap 4/4: matches ['SQL', 'Tableau', 'ETL', 'dbt'], missing none. [review_aggregator] Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews. / [news] Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds. Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band.",
+        "reasons": [
+          {
+            "claim": "Business Intelligence Analyst at Northstar Analytics (fictional) requires 2 years and lists 4 required skill(s): SQL, Tableau, ETL, dbt.",
+            "citations": [
+              {
+                "source": "jobs",
+                "locator": "MOCK_LI_GREENHOUSE_001",
+                "snippet": "Business Intelligence Analyst"
+              },
+              {
+                "source": "job_requirements_detail",
+                "locator": "MOCK_LI_GREENHOUSE_001",
+                "snippet": "We're looking for an analyst with 2+ years of experience with SQL and Tableau. You'll own the ETL pipelines (dbt) feeding our executive dashboards and run ad-hoc analyses for the GTM team."
+              }
+            ]
+          },
+          {
+            "claim": "Candidate has 4 years; role wants 2 (gap=-2). Skill overlap 4/4: matches ['SQL', 'Tableau', 'ETL', 'dbt'], missing none.",
+            "citations": [
+              {
+                "source": "resume_skills",
+                "locator": "sample_master_resume.json",
+                "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+              }
+            ]
+          },
+          {
+            "claim": "[review_aggregator] Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews. / [news] Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds.",
+            "citations": [
+              {
+                "source": "company_notes",
+                "locator": "Northstar Analytics (fictional)/review_aggregator",
+                "snippet": "Engineering/analytics team reviews mention a heavy on-call rotation for the BI team and praise for manager support; glassdoor-style rating 3.8/5 over 42 reviews."
+              },
+              {
+                "source": "company_notes",
+                "locator": "Northstar Analytics (fictional)/news",
+                "snippet": "Raised a $40M Series C eight months ago; press release names 'scaling the analytics platform team' as a stated use of funds."
+              }
+            ]
+          },
+          {
+            "claim": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band.",
+            "citations": [
+              {
+                "source": "market_salary",
+                "locator": "business intelligence analyst",
+                "snippet": "Market band for Business Intelligence Analyst (Ellicott City, MD): $72,000-$105,000 (mid $88,000). Candidate target $95,000 is within band."
+              }
+            ]
+          }
+        ],
+        "missing_skills": [],
+        "risk_notes": [],
+        "planner_refinements": []
+      }
+    }
+  ],
+  "meterless_summary": {
+    "run_id": "be742e2ef1d8",
+    "total_calls": 6,
+    "total_duration_ms": 0.28,
+    "by_agent": {
+      "job_requirements": {
+        "calls": 1,
+        "duration_ms": 0.10372999997798615,
+        "units": 900
+      },
+      "resume_match": {
+        "calls": 1,
+        "duration_ms": 0.05330800001956959,
+        "units": 574
+      },
+      "company_signal": {
+        "calls": 1,
+        "duration_ms": 0.03776399989874335,
+        "units": 265
+      },
+      "company_signal_retry": {
+        "calls": 1,
+        "duration_ms": 0.030779999974583916,
+        "units": 1012
+      },
+      "market_context": {
+        "calls": 1,
+        "duration_ms": 0.03957399997034372,
+        "units": 688
+      },
+      "explainer": {
+        "calls": 1,
+        "duration_ms": 0.018711000052462623,
+        "units": 3030
+      }
+    },
+    "metering_mode": "local_only"
+  },
+  "zetaris_status": {
+    "mode": "local_federation",
+    "endpoint": null,
+    "sources": [
+      "jobs (jobs.json)",
+      "job_requirements_detail (job_requirements_detail.json)",
+      "company_notes (company_notes.json)",
+      "market_salary (market_salary.json)",
+      "resume (sample_master_resume.json)"
+    ]
+  }
+}

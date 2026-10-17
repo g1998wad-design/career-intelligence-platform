@@ -1,0 +1,341 @@
+{
+  "run_id": "fc565df912cf",
+  "job_id": "MOCK_LI_NO_DIRECT_003",
+  "verdict": "skip",
+  "confidence": 0.66,
+  "narrative": "Recommendation: skip. Applied AI Solutions Engineer at Harborlight Labs (fictional) requires 6 years and lists 4 required skill(s): Python, LLM APIs, Machine Learning, Production AI systems. Candidate has 4 years; role wants 6 (gap=2). Skill overlap 1/4: matches ['Python'], missing ['LLM APIs', 'Machine Learning', 'Production AI systems']. No independent signal for Harborlight Labs (fictional) found in any available source window -- a genuine data gap Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band. Risk (high): Experience gap of 2 year(s) vs. the stated requirement. Mitigation: Address the gap directly (e.g. comparable project scope, fast ramp-up plan) rather than omitting it. Risk (high): Only 25% of required skills are present on the resume. Mitigation: Do not claim unlisted skills. Consider a learning plan or portfolio piece instead. Must address: Explicitly surface this gap and its mitigation in the explanation: Experience gap of 2 year(s) vs. the stated requirement. Must address: Explicitly surface this gap and its mitigation in the explanation: Only 25% of required skills are present on the resume.",
+  "reasons": [
+    {
+      "claim": "Applied AI Solutions Engineer at Harborlight Labs (fictional) requires 6 years and lists 4 required skill(s): Python, LLM APIs, Machine Learning, Production AI systems.",
+      "citations": [
+        {
+          "source": "jobs",
+          "locator": "MOCK_LI_NO_DIRECT_003",
+          "snippet": "Applied AI Solutions Engineer"
+        },
+        {
+          "source": "job_requirements_detail",
+          "locator": "MOCK_LI_NO_DIRECT_003",
+          "snippet": "6+ years of experience in ML engineering. Strong Python and hands-on production experience with LLM APIs and production AI systems required. Staff/Principal-level ownership expected."
+        }
+      ]
+    },
+    {
+      "claim": "Candidate has 4 years; role wants 6 (gap=2). Skill overlap 1/4: matches ['Python'], missing ['LLM APIs', 'Machine Learning', 'Production AI systems'].",
+      "citations": [
+        {
+          "source": "resume_skills",
+          "locator": "sample_master_resume.json",
+          "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+        }
+      ]
+    },
+    {
+      "claim": "No independent signal for Harborlight Labs (fictional) found in any available source window -- a genuine data gap",
+      "citations": []
+    },
+    {
+      "claim": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band.",
+      "citations": [
+        {
+          "source": "market_salary",
+          "locator": "applied ai solutions engineer",
+          "snippet": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band."
+        }
+      ]
+    }
+  ],
+  "missing_skills": [
+    "LLM APIs",
+    "Machine Learning",
+    "Production AI systems"
+  ],
+  "risk_notes": [
+    {
+      "severity": "high",
+      "message": "Experience gap of 2 year(s) vs. the stated requirement.",
+      "mitigation": "Address the gap directly (e.g. comparable project scope, fast ramp-up plan) rather than omitting it."
+    },
+    {
+      "severity": "high",
+      "message": "Only 25% of required skills are present on the resume.",
+      "mitigation": "Do not claim unlisted skills. Consider a learning plan or portfolio piece instead."
+    }
+  ],
+  "trace": [
+    {
+      "t": 1792274681.131,
+      "step": "planner.initial_plan",
+      "plan": [
+        "job_requirements",
+        "resume_match",
+        "company_signal",
+        "market_context"
+      ]
+    },
+    {
+      "t": 1792274681.131,
+      "step": "job_requirements",
+      "finding": {
+        "agent": "job_requirements",
+        "summary": "Applied AI Solutions Engineer at Harborlight Labs (fictional) requires 6 years and lists 4 required skill(s): Python, LLM APIs, Machine Learning, Production AI systems.",
+        "confidence": 0.9,
+        "evidence": [
+          {
+            "source": "jobs",
+            "locator": "MOCK_LI_NO_DIRECT_003",
+            "snippet": "Applied AI Solutions Engineer"
+          },
+          {
+            "source": "job_requirements_detail",
+            "locator": "MOCK_LI_NO_DIRECT_003",
+            "snippet": "6+ years of experience in ML engineering. Strong Python and hands-on production experience with LLM APIs and production AI systems required. Staff/Principal-level ownership expected."
+          }
+        ],
+        "details": {
+          "required_years": 6,
+          "years_source": "explicit_pattern",
+          "required_skills": [
+            "Python",
+            "LLM APIs",
+            "Machine Learning",
+            "Production AI systems"
+          ],
+          "sponsorship_flag": false,
+          "title": "Applied AI Solutions Engineer",
+          "company": "Harborlight Labs (fictional)",
+          "location": "Baltimore, MD"
+        }
+      }
+    },
+    {
+      "t": 1792274681.132,
+      "step": "resume_match",
+      "finding": {
+        "agent": "resume_match",
+        "summary": "Candidate has 4 years; role wants 6 (gap=2). Skill overlap 1/4: matches ['Python'], missing ['LLM APIs', 'Machine Learning', 'Production AI systems'].",
+        "confidence": 0.85,
+        "evidence": [
+          {
+            "source": "resume_skills",
+            "locator": "sample_master_resume.json",
+            "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+          }
+        ],
+        "details": {
+          "candidate_years": 4,
+          "gap_years": 2,
+          "overlap_skills": [
+            "Python"
+          ],
+          "missing_skills": [
+            "LLM APIs",
+            "Machine Learning",
+            "Production AI systems"
+          ],
+          "overlap_ratio": 0.25
+        }
+      }
+    },
+    {
+      "t": 1792274681.132,
+      "step": "company_signal.attempt_1",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "No independent signal for Harborlight Labs (fictional) within 30 days",
+        "confidence": 0.35,
+        "evidence": [],
+        "details": {
+          "max_age_days": 30,
+          "found": false
+        }
+      }
+    },
+    {
+      "t": 1792274681.132,
+      "step": "evaluator.retry",
+      "reason": "confidence below threshold on first pass -- broadening lookback window",
+      "finding": {
+        "agent": "company_signal",
+        "summary": "No independent signal for Harborlight Labs (fictional) found in any available source window -- a genuine data gap",
+        "confidence": 0.3,
+        "evidence": [],
+        "details": {
+          "max_age_days": 365,
+          "found": false
+        }
+      }
+    },
+    {
+      "t": 1792274681.132,
+      "step": "market_context",
+      "finding": {
+        "agent": "market_context",
+        "summary": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band.",
+        "confidence": 0.6,
+        "evidence": [
+          {
+            "source": "market_salary",
+            "locator": "applied ai solutions engineer",
+            "snippet": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band."
+          }
+        ],
+        "details": {
+          "band": {
+            "title_family": "applied ai solutions engineer",
+            "location_tier": "national_remote",
+            "low": 110000,
+            "mid": 135000,
+            "high": 165000
+          },
+          "target_salary": 95000,
+          "position_vs_band": "below band"
+        }
+      }
+    },
+    {
+      "t": 1792274681.132,
+      "step": "risk_agent.review",
+      "risk_notes": [
+        {
+          "severity": "high",
+          "message": "Experience gap of 2 year(s) vs. the stated requirement.",
+          "mitigation": "Address the gap directly (e.g. comparable project scope, fast ramp-up plan) rather than omitting it."
+        },
+        {
+          "severity": "high",
+          "message": "Only 25% of required skills are present on the resume.",
+          "mitigation": "Do not claim unlisted skills. Consider a learning plan or portfolio piece instead."
+        }
+      ]
+    },
+    {
+      "t": 1792274681.132,
+      "step": "planner.refine",
+      "explainer_instructions": [
+        "Explicitly surface this gap and its mitigation in the explanation: Experience gap of 2 year(s) vs. the stated requirement.",
+        "Explicitly surface this gap and its mitigation in the explanation: Only 25% of required skills are present on the resume."
+      ]
+    },
+    {
+      "t": 1792274681.132,
+      "step": "explainer",
+      "result": {
+        "verdict": "skip",
+        "confidence": 0.66,
+        "narrative": "Recommendation: skip. Applied AI Solutions Engineer at Harborlight Labs (fictional) requires 6 years and lists 4 required skill(s): Python, LLM APIs, Machine Learning, Production AI systems. Candidate has 4 years; role wants 6 (gap=2). Skill overlap 1/4: matches ['Python'], missing ['LLM APIs', 'Machine Learning', 'Production AI systems']. No independent signal for Harborlight Labs (fictional) found in any available source window -- a genuine data gap Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band. Risk (high): Experience gap of 2 year(s) vs. the stated requirement. Mitigation: Address the gap directly (e.g. comparable project scope, fast ramp-up plan) rather than omitting it. Risk (high): Only 25% of required skills are present on the resume. Mitigation: Do not claim unlisted skills. Consider a learning plan or portfolio piece instead. Must address: Explicitly surface this gap and its mitigation in the explanation: Experience gap of 2 year(s) vs. the stated requirement. Must address: Explicitly surface this gap and its mitigation in the explanation: Only 25% of required skills are present on the resume.",
+        "reasons": [
+          {
+            "claim": "Applied AI Solutions Engineer at Harborlight Labs (fictional) requires 6 years and lists 4 required skill(s): Python, LLM APIs, Machine Learning, Production AI systems.",
+            "citations": [
+              {
+                "source": "jobs",
+                "locator": "MOCK_LI_NO_DIRECT_003",
+                "snippet": "Applied AI Solutions Engineer"
+              },
+              {
+                "source": "job_requirements_detail",
+                "locator": "MOCK_LI_NO_DIRECT_003",
+                "snippet": "6+ years of experience in ML engineering. Strong Python and hands-on production experience with LLM APIs and production AI systems required. Staff/Principal-level ownership expected."
+              }
+            ]
+          },
+          {
+            "claim": "Candidate has 4 years; role wants 6 (gap=2). Skill overlap 1/4: matches ['Python'], missing ['LLM APIs', 'Machine Learning', 'Production AI systems'].",
+            "citations": [
+              {
+                "source": "resume_skills",
+                "locator": "sample_master_resume.json",
+                "snippet": "skills: ['a/b testing', 'airflow', 'dbt', 'etl', 'excel/sheets', 'looker', 'pandas', 'python', 'sql', 'tableau']"
+              }
+            ]
+          },
+          {
+            "claim": "No independent signal for Harborlight Labs (fictional) found in any available source window -- a genuine data gap",
+            "citations": []
+          },
+          {
+            "claim": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band.",
+            "citations": [
+              {
+                "source": "market_salary",
+                "locator": "applied ai solutions engineer",
+                "snippet": "Market band for Applied AI Solutions Engineer (Baltimore, MD): $110,000-$165,000 (mid $135,000). Candidate target $95,000 is below band."
+              }
+            ]
+          }
+        ],
+        "missing_skills": [
+          "LLM APIs",
+          "Machine Learning",
+          "Production AI systems"
+        ],
+        "risk_notes": [
+          {
+            "severity": "high",
+            "message": "Experience gap of 2 year(s) vs. the stated requirement.",
+            "mitigation": "Address the gap directly (e.g. comparable project scope, fast ramp-up plan) rather than omitting it."
+          },
+          {
+            "severity": "high",
+            "message": "Only 25% of required skills are present on the resume.",
+            "mitigation": "Do not claim unlisted skills. Consider a learning plan or portfolio piece instead."
+          }
+        ],
+        "planner_refinements": [
+          "Explicitly surface this gap and its mitigation in the explanation: Experience gap of 2 year(s) vs. the stated requirement.",
+          "Explicitly surface this gap and its mitigation in the explanation: Only 25% of required skills are present on the resume."
+        ]
+      }
+    }
+  ],
+  "meterless_summary": {
+    "run_id": "fc565df912cf",
+    "total_calls": 6,
+    "total_duration_ms": 0.24,
+    "by_agent": {
+      "job_requirements": {
+        "calls": 1,
+        "duration_ms": 0.09828999998262589,
+        "units": 951
+      },
+      "resume_match": {
+        "calls": 1,
+        "duration_ms": 0.046989999987090414,
+        "units": 636
+      },
+      "company_signal": {
+        "calls": 1,
+        "duration_ms": 0.02970499997445586,
+        "units": 259
+      },
+      "company_signal_retry": {
+        "calls": 1,
+        "duration_ms": 0.009250000061911123,
+        "units": 304
+      },
+      "market_context": {
+        "calls": 1,
+        "duration_ms": 0.03883299996232381,
+        "units": 682
+      },
+      "explainer": {
+        "calls": 1,
+        "duration_ms": 0.01955099992301257,
+        "units": 3565
+      }
+    },
+    "metering_mode": "local_only"
+  },
+  "zetaris_status": {
+    "mode": "local_federation",
+    "endpoint": null,
+    "sources": [
+      "jobs (jobs.json)",
+      "job_requirements_detail (job_requirements_detail.json)",
+      "company_notes (company_notes.json)",
+      "market_salary (market_salary.json)",
+      "resume (sample_master_resume.json)"
+    ]
+  }
+}

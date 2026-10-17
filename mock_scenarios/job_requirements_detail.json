@@ -1,0 +1,21 @@
+{
+  "_note": "Fictional unstructured+structured job-requirement detail, federated alongside jobs.json as a second fragmented source (same job_id key, different shape/origin -- a structured ATS field list plus free-text posting prose).",
+  "jobs": [
+    {
+      "job_id": "MOCK_LI_GREENHOUSE_001",
+      "description": "We're looking for an analyst with 2+ years of experience with SQL and Tableau. You'll own the ETL pipelines (dbt) feeding our executive dashboards and run ad-hoc analyses for the GTM team.",
+      "required_skills": ["SQL", "Tableau", "ETL", "dbt"]
+    },
+    {
+      "job_id": "MOCK_LI_WORKDAY_002",
+      "description": "5+ years of experience in data operations. Airflow and Looker required; Snowflake experience preferred. Must be authorized to work in the US without current or future sponsorship.",
+      "required_skills": ["Airflow", "Looker"],
+      "preferred_skills": ["Snowflake"]
+    },
+    {
+      "job_id": "MOCK_LI_NO_DIRECT_003",
+      "description": "6+ years of experience in ML engineering. Strong Python and hands-on production experience with LLM APIs and production AI systems required. Staff/Principal-level ownership expected.",
+      "required_skills": ["Python", "LLM APIs", "Machine Learning", "Production AI systems"]
+    }
+  ]
+}
