@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Container from "@/components/Container";
+import Reveal from "@/components/Reveal";
 import { aboutBody, aboutClosing, aboutHeading, aboutSkillAreas, approachCards } from "@/content/about";
 
 export const metadata: Metadata = {
@@ -41,10 +42,12 @@ export default function AboutPage() {
       </h2>
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         {approachCards.map((card) => (
-          <div key={card.title} className="rounded-xl border border-border bg-surface p-6">
-            <h3 className="text-base font-semibold text-text">{card.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted">{card.description}</p>
-          </div>
+          <Reveal key={card.title} className="h-full">
+            <div className="h-full rounded-xl border border-border bg-surface p-6">
+              <h3 className="text-base font-semibold text-text">{card.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{card.description}</p>
+            </div>
+          </Reveal>
         ))}
       </div>
     </Container>

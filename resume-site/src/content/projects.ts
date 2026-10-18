@@ -131,6 +131,7 @@ export const projects: Project[] = [
         { status: "EXCLUDED", description: "The transaction is outside the configured audit scope." },
       ],
     },
+    interactiveDemo: "audit-rules",
     userExperience: {
       intro:
         "Missing AI output is never treated as proof of an error — it becomes REVIEW unless a deterministic completeness rule clearly establishes a failure.",

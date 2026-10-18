@@ -13,7 +13,7 @@ export default function ProjectCard({
   return (
     <Link
       href={`/work/${project.slug}`}
-      className={`group flex flex-col justify-between rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent-blue/60 ${
+      className={`group flex h-full flex-col justify-between rounded-xl border border-border bg-surface p-6 transition-colors hover:border-accent-blue/60 ${
         featured ? "md:p-8" : ""
       }`}
     >

@@ -73,4 +73,5 @@ export type Project = {
   whatThisDemonstrates: string[];
   confidentialityNote: string;
   chart?: ChartKind;
+  interactiveDemo?: "audit-rules";
 };

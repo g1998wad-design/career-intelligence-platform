@@ -32,6 +32,7 @@
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -46,6 +47,43 @@ body {
 :focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
+}
+
+section[id] {
+  scroll-margin-top: 6.5rem;
+}
+
+@keyframes hero-converge {
+  0% {
+    transform: translate(calc(-50% + var(--fx)), calc(-50% + var(--fy))) rotate(var(--frot));
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hero-hub-in {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.hero-node {
+  animation: hero-converge 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.hero-hub {
+  opacity: 0;
+  animation: hero-hub-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 500ms;
 }
 
 @media (prefers-reduced-motion: reduce) {

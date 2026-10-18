@@ -27,3 +27,23 @@ export function getAdjacentProject(slug: string): Project | undefined {
   if (index === -1) return undefined;
   return all[(index + 1) % all.length];
 }
+
+/** Other projects sharing at least one tag, excluding this one and the adjacent "next" project. */
+export function getRelatedProjects(slug: string, limit = 2): Project[] {
+  const current = getProjectBySlug(slug);
+  if (!current) return [];
+
+  const next = getAdjacentProject(slug);
+  const excluded = new Set([slug, next?.slug].filter((s): s is string => Boolean(s)));
+
+  return getAllProjects()
+    .filter((p) => !excluded.has(p.slug))
+    .map((p) => ({
+      project: p,
+      sharedCount: p.tags.filter((tag) => current.tags.includes(tag)).length,
+    }))
+    .filter((entry) => entry.sharedCount > 0)
+    .sort((a, b) => b.sharedCount - a.sharedCount || a.project.order - b.project.order)
+    .slice(0, limit)
+    .map((entry) => entry.project);
+}

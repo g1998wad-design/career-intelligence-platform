@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import Container from "@/components/Container";
 import ProjectCard from "@/components/ProjectCard";
+import HeroDiagram from "@/components/HeroDiagram";
+import Reveal from "@/components/Reveal";
 import { hero, positioningStatement, professionalSummary, supportingStatement } from "@/content/site";
 import { getFlagshipProjects, getSupportingProjects } from "@/lib/projects";
 
@@ -12,24 +14,29 @@ export default function Home() {
   return (
     <>
       <Container className="pt-20 pb-16 sm:pt-28">
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-text sm:text-5xl">
-          {hero.headline}
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted">{hero.subheadline}</p>
-        <div className="mt-8 flex flex-wrap gap-4">
-          <Link
-            href={hero.primaryCta.href}
-            className="inline-flex items-center gap-2 rounded-full bg-accent-blue px-6 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
-          >
-            {hero.primaryCta.label}
-            <ArrowRight aria-hidden="true" size={16} />
-          </Link>
-          <Link
-            href={hero.secondaryCta.href}
-            className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-text transition-colors hover:border-accent-blue/60"
-          >
-            {hero.secondaryCta.label}
-          </Link>
+        <div className="flex flex-col items-start gap-10 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight text-text sm:text-5xl">
+              {hero.headline}
+            </h1>
+            <p className="mt-6 text-lg leading-relaxed text-muted">{hero.subheadline}</p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href={hero.primaryCta.href}
+                className="inline-flex items-center gap-2 rounded-full bg-accent-blue px-6 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+              >
+                {hero.primaryCta.label}
+                <ArrowRight aria-hidden="true" size={16} />
+              </Link>
+              <Link
+                href={hero.secondaryCta.href}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-semibold text-text transition-colors hover:border-accent-blue/60"
+              >
+                {hero.secondaryCta.label}
+              </Link>
+            </div>
+          </div>
+          <HeroDiagram />
         </div>
       </Container>
 
@@ -49,7 +56,9 @@ export default function Home() {
         </h2>
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           {flagships.map((project) => (
-            <ProjectCard key={project.slug} project={project} featured />
+            <Reveal key={project.slug} className="h-full">
+              <ProjectCard project={project} featured />
+            </Reveal>
           ))}
         </div>
       </Container>
@@ -60,7 +69,9 @@ export default function Home() {
         </h2>
         <div className="mt-6 grid gap-6 md:grid-cols-3">
           {supporting.map((project) => (
-            <ProjectCard key={project.slug} project={project} />
+            <Reveal key={project.slug} className="h-full">
+              <ProjectCard project={project} />
+            </Reveal>
           ))}
         </div>
       </Container>
